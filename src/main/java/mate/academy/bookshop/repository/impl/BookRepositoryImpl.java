@@ -1,13 +1,13 @@
 package mate.academy.bookshop.repository.impl;
 
 import java.util.List;
+import java.util.Optional;
 import lombok.AllArgsConstructor;
 import mate.academy.bookshop.model.Book;
 import mate.academy.bookshop.repository.BookRepository;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.Transaction;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
 @Repository
@@ -45,4 +45,16 @@ public class BookRepositoryImpl implements BookRepository {
             throw new RuntimeException("Can't find all books", e);
         }
     }
+
+    @Override
+    public Optional<Book> findById(Long id) {
+        try (Session session = sessionFactory.openSession()) {
+            return session.createQuery("FROM Book b WHERE b.id = :id", Book.class)
+                    .setParameter("id", id)
+                    .uniqueResultOptional();
+        } catch (Exception e) {
+            throw new RuntimeException("Can't find book with id " + id, e);
+        }
+    }
 }
+
