@@ -1,6 +1,7 @@
 package mate.academy.bookshop.repository.impl;
 
 import java.util.List;
+import lombok.AllArgsConstructor;
 import mate.academy.bookshop.model.Book;
 import mate.academy.bookshop.repository.BookRepository;
 import org.hibernate.Session;
@@ -10,13 +11,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
 @Repository
+@AllArgsConstructor
 public class BookRepositoryImpl implements BookRepository {
     private final SessionFactory sessionFactory;
-
-    @Autowired
-    public BookRepositoryImpl(SessionFactory sessionFactory) {
-        this.sessionFactory = sessionFactory;
-    }
 
     @Override
     public Book save(Book book) {

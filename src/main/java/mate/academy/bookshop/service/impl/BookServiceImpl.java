@@ -1,6 +1,11 @@
 package mate.academy.bookshop.service.impl;
 
 import java.util.List;
+import lombok.AllArgsConstructor;
+import lombok.val;
+import mate.academy.bookshop.dto.BookDto;
+import mate.academy.bookshop.dto.CreateBookRequestDto;
+import mate.academy.bookshop.mapper.BookMapper;
 import mate.academy.bookshop.model.Book;
 import mate.academy.bookshop.repository.BookRepository;
 import mate.academy.bookshop.service.BookService;
@@ -8,21 +13,19 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 @Service
+@AllArgsConstructor
 public class BookServiceImpl implements BookService {
-    private BookRepository bookRepository;
+    final private BookRepository bookRepository;
 
-    @Autowired
-    public BookServiceImpl(BookRepository bookRepository) {
-        this.bookRepository = bookRepository;
+    @Override
+    public Book save(CreateBookRequestDto requestDto) {
+//        requestDto.
+//        return bookRepository.save(book);
+        return null;
     }
 
     @Override
-    public Book save(Book book) {
-        return bookRepository.save(book);
-    }
-
-    @Override
-    public List findAll() {
+    public List<BookDto> findAll() {
         return bookRepository.findAll();
     }
 }
