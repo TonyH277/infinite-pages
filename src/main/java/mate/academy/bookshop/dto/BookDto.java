@@ -5,7 +5,6 @@ import lombok.Data;
 import org.springframework.stereotype.Component;
 
 @Data
-@Component
 public class BookDto {
     private Long id;
     private String title;
