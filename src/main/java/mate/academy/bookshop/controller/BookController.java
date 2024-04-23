@@ -1,7 +1,7 @@
 package mate.academy.bookshop.controller;
 
 import java.util.List;
-import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import mate.academy.bookshop.dto.BookDto;
 import mate.academy.bookshop.dto.CreateBookRequestDto;
 import mate.academy.bookshop.service.BookService;
@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-@AllArgsConstructor
+@RequiredArgsConstructor
 @RestController
 @RequestMapping("books")
 public class BookController {
