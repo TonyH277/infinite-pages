@@ -1,6 +1,6 @@
 databaseChangeLog:
   - changeSet:
-      id: 2
+      id: add-soft-delete-to-books-table
       author: Anton Haiduk
       changes:
         - addColumn:
