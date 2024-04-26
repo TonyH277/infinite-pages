@@ -1,4 +1,4 @@
-package mate.academy.bookshop.repository.bookSpecificaiton.providers;
+package mate.academy.bookshop.repository.book.providers;
 
 import java.util.Arrays;
 import mate.academy.bookshop.model.Book;
@@ -14,7 +14,9 @@ public class AuthorSpecificationProvider implements SpecificationProvider<Book> 
         return "author";
     }
 
+    @Override
     public Specification<Book> getSpecification(String[] params) {
-        return (root, query, criteriaBuilder) -> root.get("author").in(Arrays.stream(params).toArray());
+        return (root, query, criteriaBuilder)
+                -> root.get("author").in(Arrays.stream(params).toArray());
     }
 }
