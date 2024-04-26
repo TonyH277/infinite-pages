@@ -5,6 +5,7 @@ import lombok.RequiredArgsConstructor;
 import mate.academy.bookshop.dto.BookDto;
 import mate.academy.bookshop.dto.BookSearchParametersDto;
 import mate.academy.bookshop.dto.CreateBookRequestDto;
+import mate.academy.bookshop.repository.bookSpecificaiton.BookSpecificationBuilder;
 import mate.academy.bookshop.service.BookService;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.DeleteMapping;
