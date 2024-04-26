@@ -1,4 +1,4 @@
-package mate.academy.bookshop.repository.bookSpecificaiton;
+package mate.academy.bookshop.repository.book;
 
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -17,6 +17,7 @@ public class BookSpecificationProviderManager implements SpecificationProviderMa
         return bookSpecificationProviders.stream()
                 .filter(b -> b.getKey().equals(key))
                 .findFirst()
-                .orElseThrow(() -> new RuntimeException("Can't find correct specification provider for key " + key));
+                .orElseThrow(() -> new RuntimeException("Can't find correct "
+                        + "specification provider for key " + key));
     }
 }
