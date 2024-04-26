@@ -5,6 +5,7 @@ import lombok.RequiredArgsConstructor;
 import mate.academy.bookshop.dto.BookDto;
 import mate.academy.bookshop.dto.BookSearchParametersDto;
 import mate.academy.bookshop.dto.CreateBookRequestDto;
+import mate.academy.bookshop.repository.bookSpecificaiton.BookSpecificationBuilder;
 import mate.academy.bookshop.service.BookService;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -34,8 +35,8 @@ public class BookController {
     }
 
     @GetMapping("/search")
-    public BookDto searchBooks(BookSearchParametersDto bookParameters) {
-
+    public List<BookDto> searchBooks(BookSearchParametersDto searchParameters) {
+        return bookService.search(searchParameters);
     }
 
     @PostMapping
