@@ -11,6 +11,7 @@ public class PriceSpecificationProvider implements SpecificationProvider<Book> {
     private static final int EXPECTED_LENGTH = 2;
     private static final int MIN_PRICE_INDEX = 0;
     private static final int MAX_PRICE_INDEX = 1;
+
     @Override
     public String getKey() {
         return "price";
