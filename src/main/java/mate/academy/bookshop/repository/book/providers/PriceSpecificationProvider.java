@@ -1,7 +1,7 @@
 package mate.academy.bookshop.repository.book.providers;
 
-import java.awt.print.Book;
 import java.math.BigDecimal;
+import mate.academy.bookshop.model.Book;
 import mate.academy.bookshop.repository.SpecificationProvider;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
