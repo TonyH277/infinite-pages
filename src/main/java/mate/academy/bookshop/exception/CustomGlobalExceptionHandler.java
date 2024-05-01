@@ -40,6 +40,12 @@ public class CustomGlobalExceptionHandler extends ResponseEntityExceptionHandler
         return handleException(HttpStatus.NOT_FOUND, ex.getMessage());
     }
 
+    @ExceptionHandler(InvalidPriceRangeException.class)
+    protected ResponseEntity<Object> handleInvalidPriceRange(
+            InvalidPriceRangeException ex) {
+        return handleException(HttpStatus.BAD_REQUEST, ex.getMessage());
+    }
+
     private String getErrorMessage(ObjectError e) {
         if (e instanceof FieldError) {
             String field = ((FieldError) e).getField();
