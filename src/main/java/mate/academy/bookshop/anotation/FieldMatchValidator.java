@@ -27,7 +27,8 @@ public class FieldMatchValidator implements ConstraintValidator<FieldMatch, Obje
             secondField.setAccessible(true);
             Object secondObj = secondField.get(value);
 
-            return firstObj == null && secondObj == null || firstObj != null && firstObj.equals(secondObj);
+            return firstObj == null && secondObj == null
+                    || firstObj != null && firstObj.equals(secondObj);
         } catch (NoSuchFieldException | IllegalAccessException e) {
             return false;
         }
