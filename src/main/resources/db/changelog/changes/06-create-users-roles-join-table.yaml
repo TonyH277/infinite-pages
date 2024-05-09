@@ -1,0 +1,20 @@
+databaseChangeLog:
+  - changeSet:
+      id: create-users-role-join-table
+      author: Anton Haiduk
+      changes:
+        - createTable:
+            tableName: users_roles
+            columns:
+              - column:
+                  name: user_id
+                  type: BIGINT
+                  constraints:
+                    foreignKeyName: fk_user_id_users_roles
+                    references: users(id)
+              - column:
+                  name: role_id
+                  type: BIGINT
+                  constraints:
+                    foreignKeyName: fk_role_id_users_roles
+                    references: roles(id)

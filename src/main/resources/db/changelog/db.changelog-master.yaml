@@ -5,3 +5,11 @@ databaseChangeLog:
       file: db/changelog/changes/02-add-soft-delete-to-book-table.yaml
   - include:
       file: db/changelog/changes/03-create-users-table.yaml
+  - include:
+      file: db/changelog/changes/04-add soft-delete to-users-table.yaml
+  - include:
+      file: db/changelog/changes/05-create roles-table.yaml
+  - include:
+      file: db/changelog/changes/06-create-users-roles-join-table.yaml
+  - include:
+      file: db/changelog/changes/07-setup-users-roles.yaml
