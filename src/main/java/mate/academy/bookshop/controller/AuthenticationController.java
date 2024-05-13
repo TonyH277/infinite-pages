@@ -2,6 +2,8 @@ package mate.academy.bookshop.controller;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import mate.academy.bookshop.dto.UserLoginRequestDto;
+import mate.academy.bookshop.dto.UserLoginResponseDto;
 import mate.academy.bookshop.dto.UserRegistrationRequestDto;
 import mate.academy.bookshop.dto.UserResponseDto;
 import mate.academy.bookshop.exception.RegistrationException;
@@ -24,5 +26,10 @@ public class AuthenticationController {
     public UserResponseDto register(@RequestBody @Valid UserRegistrationRequestDto request)
             throws RegistrationException {
         return authenticationService.register(request);
+    }
+
+    @PostMapping("login")
+    public UserLoginResponseDto login(@RequestBody @Valid UserLoginRequestDto request) {
+        return authenticationService.login(request);
     }
 }
