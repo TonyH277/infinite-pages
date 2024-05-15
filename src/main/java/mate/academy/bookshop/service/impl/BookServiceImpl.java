@@ -1,13 +1,17 @@
 package mate.academy.bookshop.service.impl;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import lombok.RequiredArgsConstructor;
-import mate.academy.bookshop.dto.BookDto;
-import mate.academy.bookshop.dto.BookSearchParametersDto;
-import mate.academy.bookshop.dto.CreateBookRequestDto;
+import mate.academy.bookshop.dto.book.BookDto;
+import mate.academy.bookshop.dto.book.BookSearchParametersDto;
+import mate.academy.bookshop.dto.book.CreateBookRequestDto;
 import mate.academy.bookshop.exception.EntityNotFoundException;
 import mate.academy.bookshop.mapper.BookMapper;
 import mate.academy.bookshop.model.Book;
+import mate.academy.bookshop.model.Category;
+import mate.academy.bookshop.repository.CategoryRepository;
 import mate.academy.bookshop.repository.book.BookRepository;
 import mate.academy.bookshop.repository.book.BookSpecificationBuilder;
 import mate.academy.bookshop.service.BookService;
@@ -19,12 +23,19 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class BookServiceImpl implements BookService {
     private final BookSpecificationBuilder specificationBuilder;
+    private final CategoryRepository categoryRepository;
     private final BookRepository bookRepository;
     private final BookMapper bookMapper;
 
     @Override
     public BookDto save(CreateBookRequestDto requestDto) {
         Book book = bookMapper.toModel(requestDto);
+        Set<Category> categories = new HashSet<>();
+        for (Long categoryId : requestDto.getCategories()) {
+            categories.add(categoryRepository.findById(categoryId).orElseThrow(()
+                    -> new EntityNotFoundException("There are no category with id " + categoryId)));
+        }
+        book.setCategories(categories);
         Book savedBook = bookRepository.save(book);
         return bookMapper.toDto(savedBook);
     }

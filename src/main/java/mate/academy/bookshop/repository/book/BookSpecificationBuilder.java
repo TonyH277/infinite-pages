@@ -1,7 +1,7 @@
 package mate.academy.bookshop.repository.book;
 
 import lombok.RequiredArgsConstructor;
-import mate.academy.bookshop.dto.BookSearchParametersDto;
+import mate.academy.bookshop.dto.book.BookSearchParametersDto;
 import mate.academy.bookshop.model.Book;
 import mate.academy.bookshop.repository.SpecificationBuilder;
 import mate.academy.bookshop.repository.SpecificationProviderManager;

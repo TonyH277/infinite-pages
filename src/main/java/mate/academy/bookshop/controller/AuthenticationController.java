@@ -2,10 +2,10 @@ package mate.academy.bookshop.controller;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import mate.academy.bookshop.dto.UserLoginRequestDto;
-import mate.academy.bookshop.dto.UserLoginResponseDto;
-import mate.academy.bookshop.dto.UserRegistrationRequestDto;
-import mate.academy.bookshop.dto.UserResponseDto;
+import mate.academy.bookshop.dto.user.UserLoginRequestDto;
+import mate.academy.bookshop.dto.user.UserLoginResponseDto;
+import mate.academy.bookshop.dto.user.UserRegistrationRequestDto;
+import mate.academy.bookshop.dto.user.UserResponseDto;
 import mate.academy.bookshop.exception.RegistrationException;
 import mate.academy.bookshop.service.AuthenticationService;
 import org.springframework.http.HttpStatus;
