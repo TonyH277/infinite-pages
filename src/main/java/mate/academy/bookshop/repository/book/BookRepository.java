@@ -24,8 +24,8 @@ public interface BookRepository extends JpaRepository<Book, Long>, JpaSpecificat
     Optional<Book> findById(Long id);
 
     @Query(value = "SELECT * FROM books "
-            + "left join books_categories on books.id = books_categories.book_id"
-            + " where books_categories.category_id = :id",
+            + "LEFT JOIN books_categories ON books.id = books_categories.book_id "
+            + "WHERE books_categories.category_id = :id",
             nativeQuery = true)
     List<Book> findByCategoryId(Long id, Pageable pageable);
 }
