@@ -1,0 +1,7 @@
+databaseChangeLog:
+  - changeSet:
+      id: setup-users-roles
+      author: Anton Haiduk
+      changes:
+        - sqlFile:
+            path: db/changelog/sql/01-setup-users-roles.sql

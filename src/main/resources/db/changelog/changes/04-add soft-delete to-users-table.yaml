@@ -1,0 +1,13 @@
+databaseChangeLog:
+  - changeSet:
+      id: add-soft-delete-to-users-table
+      author: Anton Haiduk
+      changes:
+        - addColumn:
+            tableName: users
+            columns:
+              - column:
+                  name: is_deleted
+                  type: BOOLEAN
+                  defaultValueBoolean: false
+
