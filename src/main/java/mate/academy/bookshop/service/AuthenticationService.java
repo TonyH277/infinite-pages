@@ -1,9 +1,9 @@
 package mate.academy.bookshop.service;
 
-import mate.academy.bookshop.dto.UserLoginRequestDto;
-import mate.academy.bookshop.dto.UserLoginResponseDto;
-import mate.academy.bookshop.dto.UserRegistrationRequestDto;
-import mate.academy.bookshop.dto.UserResponseDto;
+import mate.academy.bookshop.dto.user.UserLoginRequestDto;
+import mate.academy.bookshop.dto.user.UserLoginResponseDto;
+import mate.academy.bookshop.dto.user.UserRegistrationRequestDto;
+import mate.academy.bookshop.dto.user.UserResponseDto;
 import mate.academy.bookshop.exception.RegistrationException;
 
 public interface AuthenticationService {
