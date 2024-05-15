@@ -57,7 +57,7 @@ public class CategoryController {
             description = "Create a new category")
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @PreAuthorize("hasRole('ADMIN')")
     public CategoryResponseDto add(@RequestBody @Valid CategoryRequestDto requestDto) {
         return categoryService.save(requestDto);
     }
@@ -66,7 +66,7 @@ public class CategoryController {
             description = "Update category by id")
     @PutMapping("/{id}")
     @ResponseStatus(HttpStatus.OK)
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @PreAuthorize("hasRole('ADMIN')")
     public CategoryResponseDto update(@RequestBody @Valid CategoryRequestDto requestDto,
                                       @PathVariable Long id) {
         return categoryService.update(id, requestDto);
@@ -76,7 +76,7 @@ public class CategoryController {
             description = "Delete category by id")
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @PreAuthorize("hasRole('ADMIN')")
     public void delete(@PathVariable Long id) {
         categoryService.deleteById(id);
     }
