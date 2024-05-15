@@ -19,6 +19,9 @@
         <maven.checkstyle.plugin.configLocation>checkstyle.xml</maven.checkstyle.plugin.configLocation>
         <springdoc.version>2.5.0</springdoc.version>
         <mapstruct.version>1.5.5.Final</mapstruct.version>
+        <jjwt-api.version>0.12.5</jjwt-api.version>
+        <jjwt-impl.version>0.12.5</jjwt-impl.version>
+        <jjwt-jackson.version>0.12.5</jjwt-jackson.version>
     </properties>
     <dependencies>
         <dependency>
@@ -81,6 +84,21 @@
             <groupId>org.springdoc</groupId>
             <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
             <version>${springdoc.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.jsonwebtoken</groupId>
+            <artifactId>jjwt-api</artifactId>
+            <version>${jjwt-api.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.jsonwebtoken</groupId>
+            <artifactId>jjwt-impl</artifactId>
+            <version>${jjwt-impl.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.jsonwebtoken</groupId>
+            <artifactId>jjwt-jackson</artifactId>
+            <version>${jjwt-jackson.version}</version>
         </dependency>
     </dependencies>
     <build>
