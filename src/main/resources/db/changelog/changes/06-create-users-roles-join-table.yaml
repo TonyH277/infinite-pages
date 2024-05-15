@@ -18,3 +18,7 @@ databaseChangeLog:
                   constraints:
                     foreignKeyName: fk_role_id_users_roles
                     references: roles(id)
+            primaryKey:
+              - columnNames:
+                  - user_id
+                  - role_id
