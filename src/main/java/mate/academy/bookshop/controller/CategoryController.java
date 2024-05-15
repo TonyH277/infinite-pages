@@ -1,5 +1,7 @@
 package mate.academy.bookshop.controller;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
@@ -20,27 +22,38 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
+@Tag(name = "Category management", description = "Endpoints for managing categories"
+        + "credentials for test user = 'user@example.com', 'user' "
+        + "credentials for test admin = 'admin@example.com', 'admin'")
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("categories")
 public class CategoryController {
     private final CategoryService categoryService;
 
+    @Operation(summary = "Get all categories",
+            description = "Get certain page of categories with custom size")
     @GetMapping
     public List<CategoryResponseDto> getAll(Pageable pageable) {
         return categoryService.getAll(pageable);
     }
 
+    @Operation(summary = "Get category by id",
+            description = "Get category by id")
     @GetMapping("/{id}")
     public CategoryResponseDto getById(@PathVariable Long id) {
         return categoryService.getById(id);
     }
 
+    @Operation(summary = "Get books by category id",
+            description = "Get books by category id")
     @GetMapping("/{id}/books")
-    public List<BookDtoWithoutCategoryIds> getById(@PathVariable Long id, Pageable pageable) {
+    public List<BookDtoWithoutCategoryIds> getBooksByCategoryId(@PathVariable Long id, Pageable pageable) {
         return categoryService.getBooksByCategoryId(id, pageable);
     }
 
+    @Operation(summary = "Create a new category",
+            description = "Create a new category")
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     @PreAuthorize("hasRole('ROLE_ADMIN')")
@@ -48,6 +61,8 @@ public class CategoryController {
         return categoryService.save(requestDto);
     }
 
+    @Operation(summary = "Update category by id",
+            description = "Update category by id")
     @PutMapping("/{id}")
     @ResponseStatus(HttpStatus.OK)
     @PreAuthorize("hasRole('ROLE_ADMIN')")
@@ -56,6 +71,8 @@ public class CategoryController {
         return categoryService.update(id, requestDto);
     }
 
+    @Operation(summary = "Delete category by id",
+            description = "Delete category by id")
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @PreAuthorize("hasRole('ROLE_ADMIN')")
