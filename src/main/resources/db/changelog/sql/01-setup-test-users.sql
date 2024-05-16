@@ -15,3 +15,8 @@ FROM users u
                                       WHEN u.email = 'admin@example.com' THEN 'ROLE_ADMIN'
                                       ELSE 'ROLE_USER'
     END;
+SET @userId = (SELECT id FROM users WHERE email = 'user@example.com');
+
+-- Insert the shopping cart associated with the user
+INSERT INTO shopping_carts (user_id)
+VALUES (@userId);

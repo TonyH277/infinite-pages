@@ -12,8 +12,10 @@ databaseChangeLog:
   - include:
       file: db/changelog/changes/06-create-users-roles-join-table.yaml
   - include:
-      file: db/changelog/changes/07-setup-users-roles.yaml
+      file: db/changelog/changes/07-create-categories-table.yaml
   - include:
-      file: db/changelog/changes/08-create-categories-table.yaml
+      file: db/changelog/changes/08-create-books-categories-join-table.yaml
   - include:
-      file: db/changelog/changes/09-create-books-categories-join-table.yaml
+      file: db/changelog/changes/09-create-shopping-carts-table.yaml
+  - include:
+      file: db/changelog/changes/10-setup-test-users.yaml
