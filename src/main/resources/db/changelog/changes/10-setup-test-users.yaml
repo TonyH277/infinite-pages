@@ -4,4 +4,4 @@ databaseChangeLog:
       author: Anton Haiduk
       changes:
         - sqlFile:
-            path: db/changelog/sql/01-setup-users-roles.sql
+            path: db/changelog/sql/01-setup-test-users.sql
