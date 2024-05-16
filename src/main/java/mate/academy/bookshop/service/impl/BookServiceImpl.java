@@ -32,8 +32,12 @@ public class BookServiceImpl implements BookService {
         Book book = bookMapper.toModel(requestDto);
         Set<Category> categories = new HashSet<>();
         for (Long categoryId : requestDto.getCategories()) {
-            categories.add(categoryRepository.findById(categoryId).orElseThrow(()
-                    -> new EntityNotFoundException("There are no category with id " + categoryId)));
+            if (categoryRepository.existsById(categoryId)) {
+                Category category = categoryRepository.findById(categoryId).get();
+                categories.add(category);
+            } else {
+                throw new EntityNotFoundException("There is no category with id " + categoryId);
+            }
         }
         book.setCategories(categories);
         Book savedBook = bookRepository.save(book);
