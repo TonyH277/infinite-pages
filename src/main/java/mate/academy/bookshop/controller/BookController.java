@@ -5,9 +5,9 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
-import mate.academy.bookshop.dto.BookDto;
-import mate.academy.bookshop.dto.BookSearchParametersDto;
-import mate.academy.bookshop.dto.CreateBookRequestDto;
+import mate.academy.bookshop.dto.book.BookDto;
+import mate.academy.bookshop.dto.book.BookSearchParametersDto;
+import mate.academy.bookshop.dto.book.CreateBookRequestDto;
 import mate.academy.bookshop.service.BookService;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
@@ -54,7 +54,7 @@ public class BookController {
 
     @Operation(summary = "Create a new book",
             description = "Create a new book")
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @PreAuthorize("hasRole('ADMIN')")
     @ResponseStatus(HttpStatus.CREATED)
     @PostMapping
     public BookDto create(@RequestBody @Valid CreateBookRequestDto requestDto) {
@@ -63,7 +63,7 @@ public class BookController {
 
     @Operation(summary = "Update book by id",
             description = "Update book by id")
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @PreAuthorize("hasRole('ADMIN')")
     @PutMapping("/{id}")
     public BookDto updateById(@RequestBody CreateBookRequestDto requestDto, @PathVariable Long id) {
         return bookService.update(id, requestDto);
@@ -71,7 +71,7 @@ public class BookController {
 
     @Operation(summary = "Delete book by id",
             description = "Delete book by id")
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @PreAuthorize("hasRole('ADMIN')")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     @DeleteMapping("/{id}")
     public void deleteById(@PathVariable Long id) {
