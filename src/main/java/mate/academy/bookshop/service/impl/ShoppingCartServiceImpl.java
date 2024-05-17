@@ -1,5 +1,6 @@
 package mate.academy.bookshop.service.impl;
 
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import mate.academy.bookshop.dto.shoppingcart.CartItemRequestDto;
 import mate.academy.bookshop.dto.shoppingcart.CartResponseDto;
@@ -31,6 +32,7 @@ public class ShoppingCartServiceImpl implements ShoppingCartService {
     }
 
     @Override
+    @Transactional
     public CartResponseDto addBookToShoppingCart(CartItemRequestDto requestDto, Long userId) {
         ShoppingCart shoppingCart = shoppingCartRepository.findByUserId(userId);
         CartItem cartItem = cartItemMapper.toEntity(requestDto);
@@ -42,12 +44,13 @@ public class ShoppingCartServiceImpl implements ShoppingCartService {
     }
 
     @Override
+    @Transactional
     public CartResponseDto updateBookQuantityByCartItemId(Long cartItemId,
                                                           Long userId,
                                                           UpdateCartItemRequestDto requestDto) {
         ShoppingCart shoppingCart = shoppingCartRepository.findByUserId(userId);
         CartItem cartItem = shoppingCart.getCartItems().stream()
-                .filter(i -> i.getId().equals(cartItemId))
+                .filter(item -> item.getId().equals(cartItemId))
                 .findFirst()
                 .orElseThrow(() -> new EntityNotFoundException("No cart item with id "
                         + cartItemId));
@@ -57,7 +60,11 @@ public class ShoppingCartServiceImpl implements ShoppingCartService {
     }
 
     @Override
-    public void deleteBookFromShoppingCart(Long cartItemId, Long userId) {
-        cartItemRepository.deleteById(cartItemId);
+    public void deleteBookFromShoppingCart(Long cartItemId) {
+        if (cartItemRepository.existsById(cartItemId)) {
+            cartItemRepository.deleteById(cartItemId);
+        } else {
+            throw new EntityNotFoundException("No cart item with id " + cartItemId);
+        }
     }
 }

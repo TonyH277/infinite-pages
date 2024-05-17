@@ -26,12 +26,4 @@ public class CartItem {
     @JoinColumn(name = "book_id", nullable = false)
     private Book book;
     private int quantity;
-
-    public CartItem(CartItem cartItem) {
-
-    }
-
-    public CartItem() {
-
-    }
 }
