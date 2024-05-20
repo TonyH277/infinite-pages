@@ -1,6 +1,7 @@
 package mate.academy.bookshop.service.impl;
 
 import jakarta.transaction.Transactional;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import mate.academy.bookshop.dto.shoppingcart.CartItemRequestDto;
 import mate.academy.bookshop.dto.shoppingcart.CartResponseDto;
@@ -8,11 +9,12 @@ import mate.academy.bookshop.dto.shoppingcart.UpdateCartItemRequestDto;
 import mate.academy.bookshop.exception.EntityNotFoundException;
 import mate.academy.bookshop.mapper.CartItemMapper;
 import mate.academy.bookshop.mapper.ShoppingCartMapper;
+import mate.academy.bookshop.model.Book;
 import mate.academy.bookshop.model.CartItem;
 import mate.academy.bookshop.model.ShoppingCart;
 import mate.academy.bookshop.repository.CartItemRepository;
 import mate.academy.bookshop.repository.ShoppingCartRepository;
-import mate.academy.bookshop.repository.UserRepository;
+import mate.academy.bookshop.repository.book.BookRepository;
 import mate.academy.bookshop.service.ShoppingCartService;
 import org.springframework.stereotype.Service;
 
@@ -20,25 +22,29 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class ShoppingCartServiceImpl implements ShoppingCartService {
     private final ShoppingCartRepository shoppingCartRepository;
-    private final UserRepository userRepository;
     private final ShoppingCartMapper shoppingCartMapper;
+    private final BookRepository bookRepository;
     private final CartItemMapper cartItemMapper;
     private final CartItemRepository cartItemRepository;
 
     @Override
     public CartResponseDto getShoppingCart(Long userId) {
-        ShoppingCart shoppingCart = shoppingCartRepository.findByUserId(userId);
+        ShoppingCart shoppingCart = getShoppingCartByUserId(userId);
         return shoppingCartMapper.toDto(shoppingCart);
     }
 
     @Override
     @Transactional
     public CartResponseDto addBookToShoppingCart(CartItemRequestDto requestDto, Long userId) {
-        ShoppingCart shoppingCart = shoppingCartRepository.findByUserId(userId);
+        ShoppingCart shoppingCart = getShoppingCartByUserId(userId);
+
         CartItem cartItem = cartItemMapper.toEntity(requestDto);
         cartItem.setShoppingCart(shoppingCart);
+        addBookToCartItem(cartItem);
+
         CartItem savedCartItem = cartItemRepository.save(cartItem);
         shoppingCart.getCartItems().add(savedCartItem);
+
         ShoppingCart savedShoppingCart = shoppingCartRepository.save(shoppingCart);
         return shoppingCartMapper.toDto(savedShoppingCart);
     }
@@ -48,7 +54,7 @@ public class ShoppingCartServiceImpl implements ShoppingCartService {
     public CartResponseDto updateBookQuantityByCartItemId(Long cartItemId,
                                                           Long userId,
                                                           UpdateCartItemRequestDto requestDto) {
-        ShoppingCart shoppingCart = shoppingCartRepository.findByUserId(userId);
+        ShoppingCart shoppingCart = getShoppingCartByUserId(userId);
         CartItem cartItem = shoppingCart.getCartItems().stream()
                 .filter(item -> item.getId().equals(cartItemId))
                 .findFirst()
@@ -61,10 +67,25 @@ public class ShoppingCartServiceImpl implements ShoppingCartService {
 
     @Override
     public void deleteBookFromShoppingCart(Long cartItemId) {
-        if (cartItemRepository.existsById(cartItemId)) {
-            cartItemRepository.deleteById(cartItemId);
-        } else {
+        if (!cartItemRepository.existsById(cartItemId)) {
             throw new EntityNotFoundException("No cart item with id " + cartItemId);
         }
+        cartItemRepository.deleteById(cartItemId);
+    }
+
+    private ShoppingCart getShoppingCartByUserId(Long userId) {
+        if (!shoppingCartRepository.existsByUserId(userId)) {
+            throw new EntityNotFoundException("No shopping cart for user id " + userId);
+        }
+        ShoppingCart shoppingCart = shoppingCartRepository.findByUserId(userId);
+        return shoppingCart;
+    }
+
+    private void addBookToCartItem(CartItem cartItem) {
+        Optional<Book> bookOptional = bookRepository.findById(cartItem.getBook().getId());
+        if (bookOptional.isEmpty()) {
+            throw new EntityNotFoundException("No book with id " + cartItem.getBook().getId());
+        }
+        cartItem.setBook(bookOptional.get());
     }
 }

@@ -10,4 +10,6 @@ public interface ShoppingCartRepository extends JpaRepository<ShoppingCart, Long
     @EntityGraph(value = "shoppingCartWithItemsAndBooks",
             type = EntityGraph.EntityGraphType.FETCH)
     ShoppingCart findByUserId(Long email);
+
+    boolean existsByUserId(Long userId);
 }
