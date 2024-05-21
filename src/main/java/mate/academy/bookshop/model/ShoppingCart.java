@@ -32,7 +32,13 @@ import lombok.ToString;
         subgraphs = {
                 @NamedSubgraph(
                         name = "cartItemsGraph",
-                        attributeNodes = @NamedAttributeNode(value = "book")
+                        attributeNodes = @NamedAttributeNode(value = "book",
+                                subgraph = "bookCategories")
+                ),
+
+                @NamedSubgraph(
+                        name = "bookCategories",
+                        attributeNodes = @NamedAttributeNode(value = "categories")
                 )
         }
 )
