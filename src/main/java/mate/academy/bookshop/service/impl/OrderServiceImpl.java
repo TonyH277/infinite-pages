@@ -11,6 +11,7 @@ import mate.academy.bookshop.dto.order.OrderItemResponseDto;
 import mate.academy.bookshop.dto.order.OrderRequestDto;
 import mate.academy.bookshop.dto.order.OrderResponseDto;
 import mate.academy.bookshop.dto.order.UpdateOrderDto;
+import mate.academy.bookshop.exception.EmptyShoppingCartException;
 import mate.academy.bookshop.exception.EntityNotFoundException;
 import mate.academy.bookshop.exception.InvalidStatusException;
 import mate.academy.bookshop.mapper.OrderItemMapper;
@@ -42,18 +43,15 @@ public class OrderServiceImpl implements OrderService {
     @Override
     @Transactional
     public OrderResponseDto placeOrder(OrderRequestDto requestDto, Long userId) {
-        if (!shoppingCartRepository.existsByUserId(userId)) {
-            throw new EntityNotFoundException("No shopping cart for user id " + userId);
-        }
-
-        ShoppingCart userShoppingCart = shoppingCartRepository.findByUserId(userId);
+        ShoppingCart userShoppingCart = shoppingCartRepository.findByUserId(userId)
+                .orElseThrow(()
+                        -> new EntityNotFoundException("No shopping cart for user id " + userId));
         if (userShoppingCart.getCartItems().isEmpty()) {
-            throw new EntityNotFoundException("Shopping cart is empty for user id " + userId);
+            throw new EmptyShoppingCartException("Shopping cart is empty for user id " + userId);
         }
 
         Order order = createOrderFromCart(userShoppingCart, requestDto);
         Order savedOrder = orderRepository.save(order);
-        orderItemRepository.saveAll(order.getOrderItems());
 
         cartItemRepository.deleteAllByShoppingCartId(userShoppingCart.getId());
         return orderMapper.toDto(savedOrder);
@@ -63,7 +61,7 @@ public class OrderServiceImpl implements OrderService {
     @Transactional
     public OrderResponseDto update(Long orderId, UpdateOrderDto requestDto) {
         Status status = validateStatus(requestDto.status());
-        Order order = findOrderIfPresent(orderId);
+        Order order = getOrder(orderId);
         order.setStatus(status);
         Order savedOrder = orderRepository.save(order);
         return orderMapper.toDto(savedOrder);
@@ -90,7 +88,7 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     public OrderItemResponseDto getItemByOrderId(Long orderId, Long itemId) {
-        Order order = findOrderIfPresent(orderId);
+        Order order = getOrder(orderId);
         return order.getOrderItems().stream()
                 .filter(item -> item.getId().equals(itemId))
                 .map(orderItemMapper::toDto)
@@ -138,7 +136,7 @@ public class OrderServiceImpl implements OrderService {
         }
     }
 
-    private Order findOrderIfPresent(Long orderId) {
+    private Order getOrder(Long orderId) {
         return orderRepository.findById(orderId).orElseThrow(()
                 -> new EntityNotFoundException("No order with id " + orderId));
     }

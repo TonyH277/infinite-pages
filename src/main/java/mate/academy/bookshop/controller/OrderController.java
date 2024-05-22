@@ -68,7 +68,6 @@ public class OrderController {
     @GetMapping("{orderId}/items")
     public List<OrderItemResponseDto> getOrderItems(@PathVariable("orderId") Long orderId,
                                                     Pageable pageable) {
-        //pagination here
         return orderService.getItems(orderId, pageable);
     }
 
