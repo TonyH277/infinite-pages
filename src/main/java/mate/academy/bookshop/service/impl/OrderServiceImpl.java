@@ -2,10 +2,7 @@ package mate.academy.bookshop.service.impl;
 
 import jakarta.transaction.Transactional;
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import mate.academy.bookshop.dto.order.OrderItemResponseDto;
 import mate.academy.bookshop.dto.order.OrderRequestDto;
@@ -16,7 +13,6 @@ import mate.academy.bookshop.exception.EntityNotFoundException;
 import mate.academy.bookshop.exception.InvalidStatusException;
 import mate.academy.bookshop.mapper.OrderItemMapper;
 import mate.academy.bookshop.mapper.OrderMapper;
-import mate.academy.bookshop.model.CartItem;
 import mate.academy.bookshop.model.ShoppingCart;
 import mate.academy.bookshop.model.order.Order;
 import mate.academy.bookshop.model.order.OrderItem;
@@ -50,7 +46,7 @@ public class OrderServiceImpl implements OrderService {
             throw new EmptyShoppingCartException("Shopping cart is empty for user id " + userId);
         }
 
-        Order order = createOrderFromCart(userShoppingCart, requestDto);
+        Order order = orderMapper.fromShoppingCart(userShoppingCart, requestDto);
         Order savedOrder = orderRepository.save(order);
 
         cartItemRepository.deleteAllByShoppingCartId(userShoppingCart.getId());
@@ -96,29 +92,6 @@ public class OrderServiceImpl implements OrderService {
                 .orElseThrow(()
                         -> new EntityNotFoundException(String
                         .format("No item with id %d in order with id %d", itemId, orderId)));
-    }
-
-    private Order createOrderFromCart(ShoppingCart userShoppingCart, OrderRequestDto requestDto) {
-        Order order = orderMapper.toEntity(requestDto);
-        Set<OrderItem> orderItems = new HashSet<>();
-
-        for (CartItem item : userShoppingCart.getCartItems()) {
-            OrderItem orderItem = new OrderItem();
-            orderItem.setBook(item.getBook());
-            orderItem.setQuantity(item.getQuantity());
-            orderItem.setPrice(item.getBook().getPrice());
-            orderItem.setOrder(order);
-            orderItems.add(orderItem);
-        }
-
-        order.setUser(userShoppingCart.getUser());
-        order.setOrderItems(orderItems);
-        order.setShippingAddress(requestDto.shippingAddress());
-        order.setStatus(Status.PENDING);
-        countTotal(order);
-        order.setOrderDate(LocalDateTime.now());
-
-        return order;
     }
 
     private void countTotal(Order order) {

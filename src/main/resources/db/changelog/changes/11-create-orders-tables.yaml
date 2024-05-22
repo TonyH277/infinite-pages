@@ -24,7 +24,7 @@ databaseChangeLog:
                     nullable: false
               - column:
                   name: total
-                  type: decimal
+                  type: DECIMAL(19, 2)
                   constraints:
                     nullable: false
               - column:
@@ -64,6 +64,6 @@ databaseChangeLog:
                     nullable: false
               - column:
                   name: price
-                  type: decimal
+                  type: DECIMAL(19, 2)
                   constraints:
                     nullable: false
