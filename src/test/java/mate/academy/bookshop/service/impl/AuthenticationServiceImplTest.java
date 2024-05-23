@@ -1,12 +1,15 @@
 package mate.academy.bookshop.service.impl;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import mate.academy.bookshop.dto.user.UserLoginRequestDto;
+import mate.academy.bookshop.dto.user.UserLoginResponseDto;
 import mate.academy.bookshop.dto.user.UserRegistrationRequestDto;
 import mate.academy.bookshop.dto.user.UserResponseDto;
 import mate.academy.bookshop.exception.RegistrationException;
@@ -29,6 +32,8 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 @ExtendWith(MockitoExtension.class)
@@ -60,7 +65,7 @@ class AuthenticationServiceImplTest {
     @BeforeEach
     void setUp() {
         requestDto = new UserRegistrationRequestDto();
-        requestDto.setEmail("uniqueEmail@com");
+        requestDto.setEmail("user@example.com");
         requestDto.setPassword("password");
 
         user = new User();
@@ -87,33 +92,71 @@ class AuthenticationServiceImplTest {
         UserResponseDto response = authenticationService.register(requestDto);
 
         verify(userRepository).existsByEmail(requestDto.getEmail());
+        verify(userMapper).toModel(requestDto);
+        verify(passwordEncoder).encode(requestDto.getPassword());
+        verify(roleRepository).findByName(RoleName.ROLE_USER);
+        verify(userRepository).save(user);
+        verify(shoppingCartRepository).save(any(ShoppingCart.class));
 
         assertEquals(userResponseDto, response);
-
     }
 
     @Test
-    void register_UserWithNotUniqueEmail_ThrowsRegistrationException() {
+    void register_UserWithNotUniqueEmail_ThrowsRegistrationException() throws RegistrationException {
+        when(userRepository.existsByEmail(requestDto.getEmail())).thenReturn(true);
+
+        RegistrationException exception = assertThrows(RegistrationException.class, ()
+                -> authenticationService.register(requestDto));
+
+        String expected = "There is another user with email " + requestDto.getEmail();
+        String actual = exception.getMessage();
+        assertEquals(expected, actual);
     }
 
     @Test
-    void register_UserIsSavedToRepository_True() {
+    void register_RolesAreAssigned_True() throws RegistrationException {
+        Role role = new Role();
+        role.setName(RoleName.ROLE_USER);
+
+        when(userRepository.existsByEmail(requestDto.getEmail())).thenReturn(false);
+        when(userMapper.toModel(requestDto)).thenReturn(user);
+        when(passwordEncoder.encode(user.getPassword())).thenReturn("encodedPassword");
+        when(roleRepository.findByName(RoleName.ROLE_USER)).thenReturn(Set.of(new Role()));
+        when(userRepository.save(user)).thenReturn(user);
+
+        authenticationService.register(requestDto);
+
+        verify(roleRepository).findByName(RoleName.ROLE_USER);
+        verify(userRepository).save(user);
+
+        assertTrue(user.getRoles().size() == 1);
+        assertTrue(user.getRoles().contains(role));
     }
 
-    @Test
-    void register_ShoppingCartIsCreated_True() {
-    }
-
-    @Test
-    void register_RolesAreAssigned_True() {
-    }
-
+    // ???
     @Test
     void register_PasswordIsEncoded_True() {
     }
 
     @Test
     void login_ValidCredentials_ReturnsToken() {
+        UserLoginRequestDto loginRequestDto = new UserLoginRequestDto("user@example.com", "password");
+        Authentication authentication = new UsernamePasswordAuthenticationToken(
+                loginRequestDto.email(),
+                loginRequestDto.password());
+
+        String expectedToken = "mockedToken";
+        when(authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(loginRequestDto.email(), loginRequestDto.password())))
+                .thenReturn(authentication);
+        when(jwtUtil.generateToken(authentication.getName())).thenReturn(expectedToken);
+
+        UserLoginResponseDto response = authenticationService.login(loginRequestDto);
+
+        verify(authenticationManager).authenticate(any(UsernamePasswordAuthenticationToken.class));
+        verify(jwtUtil).generateToken(authentication.getName());
+
+        assertEquals(expectedToken, response.token());
     }
 
     @Test
