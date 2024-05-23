@@ -1,7 +1,6 @@
 package mate.academy.bookshop.service.impl;
 
 import jakarta.transaction.Transactional;
-import java.math.BigDecimal;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import mate.academy.bookshop.dto.order.OrderItemResponseDto;
@@ -92,13 +91,6 @@ public class OrderServiceImpl implements OrderService {
                 .orElseThrow(()
                         -> new EntityNotFoundException(String
                         .format("No item with id %d in order with id %d", itemId, orderId)));
-    }
-
-    private void countTotal(Order order) {
-        order.setTotal(order.getOrderItems()
-                .stream()
-                .map(item -> item.getPrice().multiply(BigDecimal.valueOf(item.getQuantity())))
-                .reduce(BigDecimal.ZERO, BigDecimal::add));
     }
 
     private Status validateStatus(String status) {
