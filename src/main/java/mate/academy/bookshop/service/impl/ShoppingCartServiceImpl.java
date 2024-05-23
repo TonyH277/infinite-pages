@@ -74,10 +74,8 @@ public class ShoppingCartServiceImpl implements ShoppingCartService {
     }
 
     private ShoppingCart getShoppingCartByUserId(Long userId) {
-        if (!shoppingCartRepository.existsByUserId(userId)) {
-            throw new EntityNotFoundException("No shopping cart for user id " + userId);
-        }
-        ShoppingCart shoppingCart = shoppingCartRepository.findByUserId(userId);
+        ShoppingCart shoppingCart = shoppingCartRepository.findByUserId(userId).orElseThrow(()
+                -> new EntityNotFoundException("No shopping cart for user id " + userId));
         return shoppingCart;
     }
 
