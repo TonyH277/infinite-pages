@@ -24,6 +24,7 @@ import mate.academy.bookshop.repository.CategoryRepository;
 import mate.academy.bookshop.repository.book.BookRepository;
 import mate.academy.bookshop.repository.book.BookSpecificationBuilder;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -76,6 +77,7 @@ class BookServiceImplTest {
         book.setCategories(Set.of(new Category()));
     }
 
+    @DisplayName("Save book")
     @Test
     public void save_ValidBook_returnsBookDto() {
         BookDto expected = new BookDto();
@@ -96,6 +98,7 @@ class BookServiceImplTest {
         assertEquals(expected, response);
     }
 
+    @DisplayName("Save book without category - throws EntityNotFoundException")
     @Test
     public void save_BookWithoutCategory_ThrowsEntityNotFoundException() {
         when(bookMapper.toModel(requestDto)).thenReturn(book);
@@ -109,6 +112,7 @@ class BookServiceImplTest {
         assertEquals(expected, actual);
     }
 
+    @DisplayName("Find all book default pageable params")
     @Test
     public void findAll_DefaultPageableParams_ReturnsAllBookDtos() {
         Book book2 = createBook("Title2", "12345");
@@ -126,6 +130,7 @@ class BookServiceImplTest {
         assertEquals(book2Dto, response.get(1));
     }
 
+    @DisplayName("Find all books custom pageable params")
     @Test
     public void findAll_Page1Size1_ReturnsBookWithId3() {
         Book book2 = createBook("Title2", "12345");
@@ -141,6 +146,7 @@ class BookServiceImplTest {
         assertEquals(book2Dto, response.get(0));
     }
 
+    @DisplayName("Find all books sorted in reverse order")
     @Test
     public void findAll_SortedReverseOrder_ReturnsAllBookDtosReverseOrder() {
         Book book2 = createBook("Title2", "12345");
@@ -161,6 +167,7 @@ class BookServiceImplTest {
         assertEquals(bookDto, response.get(2));
     }
 
+    @DisplayName("Find all books when no books present")
     @Test
     public void findAll_NoBooksPresent_ReturnsEmptyList() {
         when(bookRepository.findAll(Pageable.unpaged())).thenReturn(Page.empty());
@@ -170,6 +177,7 @@ class BookServiceImplTest {
         assertEquals(List.of(), response);
     }
 
+    @DisplayName("Find book by id with valid id")
     @Test
     public void findBookById_ValidId_ReturnsBookDto() {
         BookDto bookDto = bookToDto(book);
@@ -181,6 +189,7 @@ class BookServiceImplTest {
         assertEquals(bookDto, response);
     }
 
+    @DisplayName("Find book by id with invalid id")
     @Test
     public void findBookById_InvalidId_ThrowsEntityNotFoundException() {
         Long id = 1L;
@@ -195,6 +204,7 @@ class BookServiceImplTest {
         assertEquals(expected, actual);
     }
 
+    @DisplayName("Update book with valid data")
     @Test
     public void update_Book_Success() {
         Long id = 1L;
@@ -211,6 +221,7 @@ class BookServiceImplTest {
         assertEquals(bookDto, response);
     }
 
+    @DisplayName("Update book with invalid id")
     @Test
     public void update_InvalidBookId_ThrowsEntityNotFoundException() {
         Long id = 1L;
@@ -226,6 +237,7 @@ class BookServiceImplTest {
         assertEquals(expected, actual);
     }
 
+    @DisplayName("Delete book by id with valid id")
     @Test
     public void deleteById_ValidBookId_DeleteBookFromDatabase() {
         Long id = 1L;
@@ -236,6 +248,7 @@ class BookServiceImplTest {
         verify(bookRepository).deleteById(id);
     }
 
+    @DisplayName("Delete book by id with invalid id")
     @Test
     public void deleteById_InvalidBookId_ThrowsEntityNotFoundException() {
         Long id = 1L;
@@ -250,6 +263,7 @@ class BookServiceImplTest {
         assertEquals(expected, actual);
     }
 
+    @DisplayName("Search books with default pageable and valid params")
     @Test
     public void search_DefaultPageableAndDefaultParams_ReturnsZeroPage20SizeBooksDtos() {
         BookSearchParametersDto params = new BookSearchParametersDto();
@@ -282,6 +296,7 @@ class BookServiceImplTest {
         assertEquals(bookDtos, response);
     }
 
+    @DisplayName("Search books with invalid params")
     @Test
     public void search_InvalidParams_ReturnsEmptyList() {
         BookSearchParametersDto params = new BookSearchParametersDto();

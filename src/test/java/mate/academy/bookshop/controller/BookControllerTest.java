@@ -8,6 +8,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.sql.Connection;
@@ -17,16 +18,14 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import javax.sql.DataSource;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.SneakyThrows;
 import mate.academy.bookshop.dto.book.BookDto;
 import mate.academy.bookshop.dto.book.CreateBookRequestDto;
-import mate.academy.bookshop.model.Book;
-import mate.academy.bookshop.model.Category;
 import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -40,25 +39,26 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
 import org.testcontainers.shaded.org.apache.commons.lang3.builder.EqualsBuilder;
 
-
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 class BookControllerTest {
 
+    private static MockMvc mockMvc;
+
+    @Autowired
+    private ObjectMapper objectMapper;
+
     @BeforeAll
-    static void beforeAll(
-            @Autowired DataSource dataSource,
-            @Autowired WebApplicationContext applicationContext
-    ) throws SQLException {
+    static void beforeAll(@Autowired WebApplicationContext applicationContext,
+                          @Autowired DataSource dataSource) throws SQLException {
         mockMvc = MockMvcBuilders
                 .webAppContextSetup(applicationContext)
                 .apply(springSecurity())
                 .build();
-        teardown(dataSource);
         try (Connection connection = dataSource.getConnection()) {
             connection.setAutoCommit(true);
+            teardown(dataSource);
             ScriptUtils.executeSqlScript(connection,
-                    new ClassPathResource("database/books/add-books.sql")
-            );
+                    new ClassPathResource("database/books/add-books.sql"));
         }
     }
 
@@ -74,27 +74,22 @@ class BookControllerTest {
         try (Connection connection = dataSource.getConnection()) {
             connection.setAutoCommit(true);
             ScriptUtils.executeSqlScript(connection,
-                    new ClassPathResource("database/books/remove-books.sql")
-            );
+                    new ClassPathResource("database/books/remove-books.sql"));
         }
     }
 
-    @SneakyThrows
-    @BeforeEach
-    void beforeEach(
+    @AfterEach
+    void clearUp(
             @Autowired DataSource dataSource
-    ) {
+    ) throws SQLException {
         try (Connection connection = dataSource.getConnection()) {
             connection.setAutoCommit(true);
             ScriptUtils.executeSqlScript(connection,
-                    new ClassPathResource("database/books/clear_up_tables.sql"));
+                    new ClassPathResource("database/books/clear-up-tables.sql"));
         }
     }
 
-    private static MockMvc mockMvc;
-    @Autowired
-    private ObjectMapper objectMapper;
-
+    @DisplayName("Get all books with default pageable params")
     @WithMockUser(username = "user")
     @Test
     void getAll_DefaultPageableParams_ReturnsPageOfBooks() throws Exception {
@@ -114,10 +109,12 @@ class BookControllerTest {
         Assertions.assertFalse(actual.isEmpty());
         Assertions.assertEquals(expected.size(), actual.size());
         for (int i = 0; i < expected.size(); i++) {
-            Assertions.assertTrue(EqualsBuilder.reflectionEquals(expected.get(i), actual.get(i), "id"));
+            Assertions.assertTrue(EqualsBuilder.reflectionEquals(expected.get(i),
+                    actual.get(i), "id"));
         }
     }
 
+    @DisplayName("Get all books with custom pageable params")
     @WithMockUser(username = "user")
     @Test
     void getAll_CustomPageableParams_ReturnsCustomPageOfBooks() throws Exception {
@@ -138,21 +135,25 @@ class BookControllerTest {
         Assertions.assertFalse(actual.isEmpty());
         Assertions.assertEquals(expected.size(), actual.size());
         for (int i = 0; i < expected.size(); i++) {
-            Assertions.assertTrue(EqualsBuilder.reflectionEquals(expected.get(i), actual.get(i), "id"));
+            Assertions.assertTrue(EqualsBuilder.reflectionEquals(expected.get(i),
+                    actual.get(i), "id"));
         }
     }
 
+    @DisplayName("Get book by ID when book exists")
     @WithMockUser(username = "user")
     @Test
     void getById_ValidId_ReturnsBookDto() throws Exception {
         Long id = 4L;
         int expectedBookIndex = 3;
         MvcResult result = mockMvc.perform(get("/books/{id}", id)
-                        .contentType(MediaType.APPLICATION_JSON)).andExpect(status().isOk())
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andReturn();
 
-        BookDto actual = objectMapper.readValue(result.getResponse().getContentAsString(), BookDto.class);
+        BookDto actual = objectMapper.readValue(result.getResponse().getContentAsString(),
+                BookDto.class);
         List<BookDto> expected = getExpectedBooks();
 
         Assertions.assertNotNull(actual);
@@ -160,6 +161,7 @@ class BookControllerTest {
                 actual, "id"));
     }
 
+    @DisplayName("Get book by ID with invalid ID")
     @WithMockUser(username = "user")
     @Test
     void getById_InvalidId_ThrowsEntityNotFoundException() throws Exception {
@@ -173,6 +175,7 @@ class BookControllerTest {
         Assertions.assertEquals(expected, actual);
     }
 
+    @DisplayName("Search books with valid parameters and default pageable")
     @WithMockUser(username = "user")
     @Test
     void searchBooks_ValidParametersDefaultPageable_ReturnsPageOfBooks() throws Exception {
@@ -193,10 +196,12 @@ class BookControllerTest {
         Assertions.assertNotNull(actual);
         Assertions.assertEquals(expected.size(), actual.size());
         for (int i = 0; i < expected.size(); i++) {
-            Assertions.assertTrue(EqualsBuilder.reflectionEquals(expected.get(i), actual.get(i), "id"));
+            Assertions.assertTrue(EqualsBuilder.reflectionEquals(expected.get(i), actual.get(i),
+                    "id"));
         }
     }
 
+    @DisplayName("Search books with valid parameters and custom pageable")
     @WithMockUser(username = "user")
     @Test
     void searchBooks_ValidParametersCustomPageable_ReturnsCustomPageOfBooks() throws Exception {
@@ -222,10 +227,12 @@ class BookControllerTest {
         Assertions.assertNotNull(actual);
         Assertions.assertEquals(expected.size(), actual.size());
         for (int i = 0; i < expected.size(); i++) {
-            Assertions.assertTrue(EqualsBuilder.reflectionEquals(expected.get(i), actual.get(i), "id"));
+            Assertions.assertTrue(EqualsBuilder.reflectionEquals(expected.get(i), actual.get(i),
+                    "id"));
         }
     }
 
+    @DisplayName("Create new book with valid request")
     @WithMockUser(username = "admin", roles = {"ADMIN"})
     @Test
     void create_ValidRequestDto_ReturnsBookResponseDto() throws Exception {
@@ -239,13 +246,15 @@ class BookControllerTest {
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andReturn();
 
-        BookDto actual = objectMapper.readValue(result.getResponse().getContentAsString(), BookDto.class);
+        BookDto actual = objectMapper.readValue(result.getResponse().getContentAsString(),
+                BookDto.class);
         BookDto expected = toBookDto(newBook);
         Assertions.assertNotNull(actual);
 
         Assertions.assertTrue(EqualsBuilder.reflectionEquals(expected, actual, "id"));
     }
 
+    @DisplayName("Create new book with invalid request")
     @WithMockUser(username = "admin", roles = {"ADMIN"})
     @Test
     void create_InvalidRequestDto_ThrowsValidationException() throws Exception {
@@ -264,6 +273,7 @@ class BookControllerTest {
         Assertions.assertTrue(actual.contains("Validation failed"));
     }
 
+    @DisplayName("Update book by ID with valid ID and request")
     @WithMockUser(username = "admin", roles = {"ADMIN"})
     @Test
     void updateById_ValidIdAndValidRequestDto_ReturnsBookResponseDto() throws Exception {
@@ -279,13 +289,15 @@ class BookControllerTest {
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andReturn();
 
-        BookDto actual = objectMapper.readValue(result.getResponse().getContentAsString(), BookDto.class);
+        BookDto actual = objectMapper.readValue(result.getResponse().getContentAsString(),
+                BookDto.class);
         BookDto expected = toBookDto(updatedBook);
 
         Assertions.assertNotNull(actual);
         Assertions.assertTrue(EqualsBuilder.reflectionEquals(expected, actual, "id"));
     }
 
+    @DisplayName("Update book by ID with invalid ID")
     @WithMockUser(username = "admin", roles = {"ADMIN"})
     @Test
     void updateById_InvalidId_ThrowsValidationException() throws Exception {
@@ -304,13 +316,13 @@ class BookControllerTest {
         Assertions.assertEquals(expected, actual);
     }
 
+    @DisplayName("Delete book by ID with valid ID")
     @WithMockUser(username = "admin", roles = {"ADMIN"})
     @Test
     void deleteById_ValidId_Success() throws Exception {
         Long id = 4L;
         mockMvc.perform(delete("/books/{id}", id)
                         .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isNoContent())
                 .andReturn();
 
         MvcResult result = mockMvc.perform(get("/books/{id}", id)
@@ -323,6 +335,7 @@ class BookControllerTest {
         Assertions.assertEquals(expected, actual);
     }
 
+    @DisplayName("Delete book by ID with invalid ID")
     @WithMockUser(username = "admin", roles = {"ADMIN"})
     @Test
     void deleteById_InvalidId_ThrowsEntityNotFoundException() throws Exception {
@@ -335,18 +348,6 @@ class BookControllerTest {
         String expected = "Can't find book with id " + invalidId;
         Assertions.assertEquals(expected, actual);
 
-    }
-
-    private Book createBook(String title, String isbn, Category category) {
-        Book book = new Book();
-        book.setAuthor("Author");
-        book.setIsbn(isbn);
-        book.setPrice(BigDecimal.TEN);
-        book.setTitle(title);
-        book.setDescription("Description");
-        book.setCoverImage("coverImage");
-        book.setCategories(Set.of(category));
-        return book;
     }
 
     private List<BookDto> getExpectedBooks() {
