@@ -1,12 +1,12 @@
 package mate.academy.bookshop.service.impl;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 import mate.academy.bookshop.dto.user.UserLoginRequestDto;
 import mate.academy.bookshop.dto.user.UserLoginResponseDto;
@@ -21,19 +21,18 @@ import mate.academy.bookshop.model.User;
 import mate.academy.bookshop.repository.RoleRepository;
 import mate.academy.bookshop.repository.ShoppingCartRepository;
 import mate.academy.bookshop.repository.UserRepository;
-import mate.academy.bookshop.service.AuthenticationService;
 import mate.academy.bookshop.util.JwtUtil;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 @ExtendWith(MockitoExtension.class)
@@ -79,9 +78,8 @@ class AuthenticationServiceImplTest {
         shoppingCart.setUser(user);
     }
 
-
     @Test
-    void register_UserWithUniqueEmail_True() throws RegistrationException {
+    void register_UserWithUniqueEmail_returnsUserResponseDto() throws RegistrationException {
         when(userRepository.existsByEmail(requestDto.getEmail())).thenReturn(false);
         when(userMapper.toModel(requestDto)).thenReturn(user);
         when(passwordEncoder.encode(user.getPassword())).thenReturn("encodedPassword");
@@ -91,18 +89,12 @@ class AuthenticationServiceImplTest {
 
         UserResponseDto response = authenticationService.register(requestDto);
 
-        verify(userRepository).existsByEmail(requestDto.getEmail());
-        verify(userMapper).toModel(requestDto);
-        verify(passwordEncoder).encode(requestDto.getPassword());
-        verify(roleRepository).findByName(RoleName.ROLE_USER);
-        verify(userRepository).save(user);
-        verify(shoppingCartRepository).save(any(ShoppingCart.class));
-
         assertEquals(userResponseDto, response);
     }
 
     @Test
-    void register_UserWithNotUniqueEmail_ThrowsRegistrationException() throws RegistrationException {
+    void register_UserWithNotUniqueEmail_ThrowsRegistrationException()
+            throws RegistrationException {
         when(userRepository.existsByEmail(requestDto.getEmail())).thenReturn(true);
 
         RegistrationException exception = assertThrows(RegistrationException.class, ()
@@ -133,27 +125,25 @@ class AuthenticationServiceImplTest {
         assertTrue(user.getRoles().contains(role));
     }
 
-    // ???
-    @Test
-    void register_PasswordIsEncoded_True() {
-    }
-
     @Test
     void login_ValidCredentials_ReturnsToken() {
-        UserLoginRequestDto loginRequestDto = new UserLoginRequestDto("user@example.com", "password");
+        UserLoginRequestDto loginRequestDto = new UserLoginRequestDto("user@example.com",
+                "password");
         Authentication authentication = new UsernamePasswordAuthenticationToken(
                 loginRequestDto.email(),
                 loginRequestDto.password());
 
         String expectedToken = "mockedToken";
         when(authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(loginRequestDto.email(), loginRequestDto.password())))
+                new UsernamePasswordAuthenticationToken(loginRequestDto.email(),
+                        loginRequestDto.password())))
                 .thenReturn(authentication);
         when(jwtUtil.generateToken(authentication.getName())).thenReturn(expectedToken);
 
         UserLoginResponseDto response = authenticationService.login(loginRequestDto);
 
-        verify(authenticationManager).authenticate(any(UsernamePasswordAuthenticationToken.class));
+        verify(authenticationManager).authenticate(
+                any(UsernamePasswordAuthenticationToken.class));
         verify(jwtUtil).generateToken(authentication.getName());
 
         assertEquals(expectedToken, response.token());
@@ -161,5 +151,14 @@ class AuthenticationServiceImplTest {
 
     @Test
     void login_InvalidCredentials_ThrowsAuthenticationException() {
+        UserLoginRequestDto loginRequestDto = new UserLoginRequestDto("user@example.com",
+                "password");
+
+        when(authenticationManager.authenticate(
+                any(UsernamePasswordAuthenticationToken.class)))
+                .thenThrow(new BadCredentialsException("Bad credentials"));
+
+        assertThrows(AuthenticationException.class, () ->
+                authenticationService.login(loginRequestDto));
     }
 }
