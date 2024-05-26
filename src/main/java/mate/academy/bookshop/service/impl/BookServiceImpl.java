@@ -32,12 +32,11 @@ public class BookServiceImpl implements BookService {
         Book book = bookMapper.toModel(requestDto);
         Set<Category> categories = new HashSet<>();
         for (Long categoryId : requestDto.getCategories()) {
-            if (categoryRepository.existsById(categoryId)) {
-                Category category = categoryRepository.findById(categoryId).get();
-                categories.add(category);
-            } else {
-                throw new EntityNotFoundException("There is no category with id " + categoryId);
-            }
+            Category category = categoryRepository.findById(categoryId)
+                    .orElseThrow(()
+                            -> new EntityNotFoundException("There is no category with id "
+                            + categoryId));
+            categories.add(category);
         }
         book.setCategories(categories);
         Book savedBook = bookRepository.save(book);
@@ -74,6 +73,9 @@ public class BookServiceImpl implements BookService {
 
     @Override
     public void deleteById(Long id) {
+        if (!bookRepository.existsById(id)) {
+            throw new EntityNotFoundException("Can't find book with id " + id);
+        }
         bookRepository.deleteById(id);
     }
 
