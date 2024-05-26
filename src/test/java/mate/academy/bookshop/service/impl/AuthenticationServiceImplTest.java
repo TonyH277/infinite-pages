@@ -23,6 +23,7 @@ import mate.academy.bookshop.repository.ShoppingCartRepository;
 import mate.academy.bookshop.repository.UserRepository;
 import mate.academy.bookshop.util.JwtUtil;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -78,6 +79,7 @@ class AuthenticationServiceImplTest {
         shoppingCart.setUser(user);
     }
 
+    @DisplayName("Register new user with valid credentials")
     @Test
     void register_UserWithUniqueEmail_returnsUserResponseDto() throws RegistrationException {
         when(userRepository.existsByEmail(requestDto.getEmail())).thenReturn(false);
@@ -92,6 +94,7 @@ class AuthenticationServiceImplTest {
         assertEquals(userResponseDto, response);
     }
 
+    @DisplayName("Register new user with invalid credentials")
     @Test
     void register_UserWithNotUniqueEmail_ThrowsRegistrationException()
             throws RegistrationException {
@@ -105,6 +108,7 @@ class AuthenticationServiceImplTest {
         assertEquals(expected, actual);
     }
 
+    @DisplayName("Roles are assigned correctly")
     @Test
     void register_RolesAreAssigned_True() throws RegistrationException {
         Role role = new Role();
@@ -125,6 +129,7 @@ class AuthenticationServiceImplTest {
         assertTrue(user.getRoles().contains(role));
     }
 
+    @DisplayName("Login with valid credentials returns token")
     @Test
     void login_ValidCredentials_ReturnsToken() {
         UserLoginRequestDto loginRequestDto = new UserLoginRequestDto("user@example.com",
@@ -149,6 +154,7 @@ class AuthenticationServiceImplTest {
         assertEquals(expectedToken, response.token());
     }
 
+    @DisplayName("Login with invalid credentials throws AuthenticationException")
     @Test
     void login_InvalidCredentials_ThrowsAuthenticationException() {
         UserLoginRequestDto loginRequestDto = new UserLoginRequestDto("user@example.com",

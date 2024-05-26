@@ -10,6 +10,7 @@ import mate.academy.bookshop.model.Category;
 import mate.academy.bookshop.repository.CategoryRepository;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
@@ -34,7 +35,6 @@ class BookRepositoryTest {
     private Book book2;
     private Book book3;
 
-
     @BeforeEach
     void setUp() {
         category = new Category();
@@ -46,12 +46,13 @@ class BookRepositoryTest {
         book3 = createBook("Title3", "234599", category);
     }
 
+    @DisplayName("Find all with default pageable params")
     @Test
     void findAll_PageableDefaultParams_ReturnsPageOfBooks() {
         Pageable pageable = PageRequest.of(0, 20);
         List<Book> books = List.of(book1, book2, book3);
-        Page<Book> bookPage = new PageImpl<>(books, pageable, 3);
         bookRepository.saveAll(books);
+        Page<Book> bookPage = new PageImpl<>(books, pageable, 3);
 
         Page<Book> response = bookRepository.findAll(pageable);
 
@@ -61,6 +62,7 @@ class BookRepositoryTest {
         Assertions.assertTrue(response.getContent().containsAll(books));
     }
 
+    @DisplayName("Find all with custom pageable params")
     @Test
     void findAll_PageableCustomParams_ReturnsPageOfBooks() {
         Pageable pageable = PageRequest.of(0, 2, Sort.by("title").descending());
@@ -74,6 +76,7 @@ class BookRepositoryTest {
         Assertions.assertEquals(List.of(book3, book2), response.getContent());
     }
 
+    @DisplayName("Find by id when book exists")
     @Test
     void findById_BookExistById_ReturnsOptionalBookWithCategories() {
         Book savedBook = bookRepository.save(book1);
@@ -86,6 +89,7 @@ class BookRepositoryTest {
         Assertions.assertTrue(fetchedBook.getCategories().contains(category));
     }
 
+    @DisplayName("Find by id when book does not exist")
     @Test
     void findById_BookNotExistById_ReturnsOptionalEmpty() {
         Optional<Book> response = bookRepository.findById(1L);
@@ -94,6 +98,7 @@ class BookRepositoryTest {
         Assertions.assertEquals(Optional.empty(), response);
     }
 
+    @DisplayName("Find by category id with valid category id and default pageable params")
     @Test
     void findByCategoryId_ValidCategoryIdAndDefaultPageableParams_ReturnsPageOfBooks() {
         Category category2 = new Category();
@@ -115,6 +120,7 @@ class BookRepositoryTest {
                 book.getCategories().contains(category)));
     }
 
+    @DisplayName("Find by category id with invalid category id and default pageable params")
     @Test
     void findByCategoryId_InvalidCategoryIdAndDefaultPageableParams_ReturnsEmptyPage() {
         Long invalidCategoryId = 2L;
@@ -129,6 +135,7 @@ class BookRepositoryTest {
         Assertions.assertEquals(Collections.emptyList(), response.getContent());
     }
 
+    @DisplayName("Find by category id with valid category id and custom pageable params")
     @Test
     void findByCategoryId_ValidCategoryIdAndCustomPageableParams_ReturnsCustomPageOfBooks() {
         Category category2 = new Category();

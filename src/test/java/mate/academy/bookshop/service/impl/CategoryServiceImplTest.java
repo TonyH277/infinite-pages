@@ -22,6 +22,7 @@ import mate.academy.bookshop.model.Category;
 import mate.academy.bookshop.repository.CategoryRepository;
 import mate.academy.bookshop.repository.book.BookRepository;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -63,6 +64,7 @@ class CategoryServiceImplTest {
         categoryDto = new CategoryResponseDto(1L, "Category1", "Description");
     }
 
+    @DisplayName("Save new category")
     @Test
     public void save_NewCategory_ReturnsCategoryResponseDto() {
         CategoryRequestDto requestDto = new CategoryRequestDto("Category1", "Description");
@@ -75,6 +77,7 @@ class CategoryServiceImplTest {
         assertEquals(categoryDto, response);
     }
 
+    @DisplayName("Update existing category")
     @Test
     public void update_ExistingCategory_ReturnsCategoryResponseDto() {
         CategoryRequestDto requestDto = new CategoryRequestDto("Category2", "Description2");
@@ -90,6 +93,7 @@ class CategoryServiceImplTest {
         assertEquals(updatedCategoryDto, response);
     }
 
+    @DisplayName("Update when category does not exist")
     @Test
     public void update_UnExistingCategory_ThrowsEntityNotFoundException() {
         Long id = 2L;
@@ -106,6 +110,7 @@ class CategoryServiceImplTest {
 
     }
 
+    @DisplayName("Delete existing category")
     @Test
     public void delete_ExistingCategory_Ok() {
         when(categoryRepository.existsById(category.getId())).thenReturn(true);
@@ -115,6 +120,7 @@ class CategoryServiceImplTest {
         verify(categoryRepository).existsById(category.getId());
     }
 
+    @DisplayName("Delete when category does not exist")
     @Test
     public void delete_UnExistingCategory_ThrowsEntityNotFoundException() {
         when(categoryRepository.existsById(category.getId())).thenReturn(false);
@@ -128,6 +134,7 @@ class CategoryServiceImplTest {
         assertEquals(expected, actual);
     }
 
+    @DisplayName("Get all categories with default pageable params")
     @Test
     public void getAll_DefaultPageableParams_ReturnsBookPageByDefaultParams() {
         Category category1 = createCategory();
@@ -150,6 +157,7 @@ class CategoryServiceImplTest {
         assertEquals(categoryDtos, response);
     }
 
+    @DisplayName("Get all categories with custom pageable params")
     @Test
     public void getAll_CustomPageableParams_ReturnsCategoryResponseDto() {
         Category category1 = createCategory();
@@ -172,6 +180,7 @@ class CategoryServiceImplTest {
         assertEquals(categoryDtos, response);
     }
 
+    @DisplayName("Get all categories when no categories present")
     @Test
     public void getAll_NoCategoriesPresent_ReturnsEmptyList() {
         Pageable pageable = PageRequest.of(0, 20);
@@ -183,6 +192,7 @@ class CategoryServiceImplTest {
         assertEquals(Collections.emptyList(), response);
     }
 
+    @DisplayName("Get category by id when category exists")
     @Test
     public void getById_CategoryExistById_ReturnsCategoryResponseDto() {
         when(categoryRepository.findById(category.getId()))
@@ -194,6 +204,7 @@ class CategoryServiceImplTest {
         assertEquals(categoryDto, response);
     }
 
+    @DisplayName("Get category by id when category does not exist")
     @Test
     public void getById_CategoryUnExistById_ReturnsCategoryResponseDto() {
         when(categoryRepository.findById(category.getId())).thenReturn(Optional.empty());
@@ -207,6 +218,7 @@ class CategoryServiceImplTest {
         assertEquals(expected, actual);
     }
 
+    @DisplayName("Get books by category id with existing id")
     @Test
     public void getBooksByCategoryId_ExcitingId_ReturnsListOfBookDtoWithoutCategoryIds() {
         Book book1 = createBook("Title1", "234567");
@@ -232,6 +244,7 @@ class CategoryServiceImplTest {
         assertEquals(expected, response);
     }
 
+    @DisplayName("Get books by category id with no books present")
     @Test
     public void getBooksByCategoryId_NoBooksWithCategoryId_ReturnsEmptyList() {
         Pageable pageable = PageRequest.of(0, 20);
