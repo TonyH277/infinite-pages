@@ -5,14 +5,15 @@
 Welcome to Infinite Pages – the ultimate backend for your online bookshop! This project was inspired by the desire to create a seamless and efficient online platform for book lovers and sellers alike. With the growing demand for online bookstores, Infinite Pages aims to provide a robust, secure, and user-friendly backend system to manage book inventories, user accounts, and orders.
 
 ## 📋 Structure
-- [📓Introduction](#Introduction)
-- [📓Technologies Used](#Technologies-Used)
-- [📓Features](#Features)
-- [📓Installation](#Installation)
-- [📓Postman Collection](#Postman-Collection)
-- [📓Challenges Faced](#Challenges-Faced)
-- [📓Demo](#Demo)
-- [📓License](#License)
+- [📓Introduction](#-introduction)
+- [📓Technologies Used](#-technologies-used)
+- [📓Features](#-features)
+- [📓Installation](#-installation)
+- [📓Postman Collection](#-postman-collection)
+- [📓Challenges Faced](#-challenges-faced)
+- [📓Demo](#-demo)
+- [📓License](#-license)
+
 
 ## 🚀 Introduction
 
