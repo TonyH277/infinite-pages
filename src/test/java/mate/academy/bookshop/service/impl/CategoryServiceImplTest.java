@@ -99,12 +99,11 @@ class CategoryServiceImplTest {
         Long id = 2L;
         CategoryRequestDto requestDto = new CategoryRequestDto("Category2", "Description2");
         when(categoryRepository.findById(id)).thenReturn(Optional.empty());
+        String expected = "Category not found with id: " + id;
 
         EntityNotFoundException exception = assertThrows(EntityNotFoundException.class, ()
                 -> categoryService.update(id, requestDto));
-
         String actual = exception.getMessage();
-        String expected = "Category not found with id: " + id;
 
         assertEquals(expected, actual);
 
@@ -124,12 +123,11 @@ class CategoryServiceImplTest {
     @Test
     public void delete_UnExistingCategory_ThrowsEntityNotFoundException() {
         when(categoryRepository.existsById(category.getId())).thenReturn(false);
+        String expected = "Category not found with id: " + category.getId();
 
         EntityNotFoundException exception = assertThrows(EntityNotFoundException.class, ()
                 -> categoryService.deleteById(category.getId()));
-
         String actual = exception.getMessage();
-        String expected = "Category not found with id: " + category.getId();
 
         assertEquals(expected, actual);
     }
@@ -142,7 +140,6 @@ class CategoryServiceImplTest {
         Pageable pageable = PageRequest.of(0, 20);
         List<Category> categories = List.of(category, category1, category2);
         Page<Category> categoryPage = new PageImpl<>(categories, pageable, 3);
-
         when(categoryRepository.findAll(pageable)).thenReturn(categoryPage);
         when(categoryMapper.toDto(any(Category.class))).thenAnswer(invocation -> {
             Category category = invocation.getArgument(0);
@@ -165,7 +162,6 @@ class CategoryServiceImplTest {
         Pageable pageable = PageRequest.of(1, 2);
         List<Category> categories = List.of(category2);
         Page<Category> categoryPage = new PageImpl<>(categories, pageable, 1);
-
         when(categoryRepository.findAll(pageable)).thenReturn(categoryPage);
         when(categoryMapper.toDto(any(Category.class))).thenAnswer(invocation -> {
             Category category = invocation.getArgument(0);
@@ -185,10 +181,10 @@ class CategoryServiceImplTest {
     public void getAll_NoCategoriesPresent_ReturnsEmptyList() {
         Pageable pageable = PageRequest.of(0, 20);
         Page<Category> emptyBookPage = new PageImpl<>(Collections.emptyList(), pageable, 0);
-
         when(categoryRepository.findAll(pageable)).thenReturn(emptyBookPage);
 
         List<CategoryResponseDto> response = categoryService.getAll(pageable);
+
         assertEquals(Collections.emptyList(), response);
     }
 
@@ -208,12 +204,11 @@ class CategoryServiceImplTest {
     @Test
     public void getById_CategoryUnExistById_ReturnsCategoryResponseDto() {
         when(categoryRepository.findById(category.getId())).thenReturn(Optional.empty());
+        String expected = "Category not found with id: " + category.getId();
 
         EntityNotFoundException exception = assertThrows(EntityNotFoundException.class, ()
                 -> categoryService.getById(category.getId()));
-
         String actual = exception.getMessage();
-        String expected = "Category not found with id: " + category.getId();
 
         assertEquals(expected, actual);
     }
@@ -227,19 +222,17 @@ class CategoryServiceImplTest {
         Pageable pageable = PageRequest.of(0, 20);
         List<Book> books = List.of(book1, book2, book3);
         Page<Book> bookPage = new PageImpl<>(books, pageable, 3);
-
         when(bookRepository.findByCategoryId(category.getId(), pageable)).thenReturn(bookPage);
         when(bookMapper.toDtoWithoutCategories(any(Book.class))).thenAnswer(invocation -> {
             Book book = invocation.getArgument(0);
             return toBookDtoWithoutCategories(book);
         });
-
-        List<BookDtoWithoutCategoryIds> response = categoryService
-                .getBooksByCategoryId(category.getId(), pageable);
-
         List<BookDtoWithoutCategoryIds> expected = books.stream()
                 .map(this::toBookDtoWithoutCategories)
                 .toList();
+
+        List<BookDtoWithoutCategoryIds> response = categoryService
+                .getBooksByCategoryId(category.getId(), pageable);
 
         assertEquals(expected, response);
     }
@@ -249,14 +242,12 @@ class CategoryServiceImplTest {
     public void getBooksByCategoryId_NoBooksWithCategoryId_ReturnsEmptyList() {
         Pageable pageable = PageRequest.of(0, 20);
         Page<Book> bookPage = new PageImpl<>(Collections.emptyList(), pageable, 3);
-
         when(bookRepository.findByCategoryId(category.getId(), pageable)).thenReturn(bookPage);
 
         List<BookDtoWithoutCategoryIds> response = categoryService
                 .getBooksByCategoryId(category.getId(), pageable);
 
         assertEquals(Collections.emptyList(), response);
-
     }
 
     private CategoryResponseDto categoryToDto(Category category) {

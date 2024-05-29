@@ -31,6 +31,7 @@ class BookRepositoryTest {
     private CategoryRepository categoryRepository;
 
     private Category category;
+    private Category category2;
     private Book book1;
     private Book book2;
     private Book book3;
@@ -39,7 +40,10 @@ class BookRepositoryTest {
     void setUp() {
         category = new Category();
         category.setName("Category1");
+        category2 = new Category();
+        category2.setName("Category2");
         category = categoryRepository.save(category);
+        category2 = categoryRepository.save(category2);
 
         book1 = createBook("Title1", "234567", category);
         book2 = createBook("Title2", "234560", category);
@@ -67,7 +71,6 @@ class BookRepositoryTest {
     void findAll_PageableCustomParams_ReturnsPageOfBooks() {
         Pageable pageable = PageRequest.of(0, 2, Sort.by("title").descending());
         List<Book> books = List.of(book1, book2, book3);
-        Page<Book> bookPage = new PageImpl<>(List.of(book3, book2), pageable, 3);
         bookRepository.saveAll(books);
 
         Page<Book> response = bookRepository.findAll(pageable);
@@ -95,7 +98,6 @@ class BookRepositoryTest {
         Optional<Book> response = bookRepository.findById(1L);
 
         Assertions.assertFalse(response.isPresent());
-        Assertions.assertEquals(Optional.empty(), response);
     }
 
     @DisplayName("Find by category id with valid category id and default pageable params")
@@ -138,15 +140,9 @@ class BookRepositoryTest {
     @DisplayName("Find by category id with valid category id and custom pageable params")
     @Test
     void findByCategoryId_ValidCategoryIdAndCustomPageableParams_ReturnsCustomPageOfBooks() {
-        Category category2 = new Category();
-        category2.setName("Category2");
-        category2.setDescription("Description2");
-        Category secondCategory = categoryRepository.save(category2);
-        book2.setCategories(Set.of(secondCategory));
-
+        book2.setCategories(Set.of(category2));
         Pageable pageable = PageRequest.of(0, 2);
         List<Book> books = List.of(book1, book2, book3);
-        Page<Book> bookPage = new PageImpl<>(List.of(book1, book3), pageable, 3);
         bookRepository.saveAll(books);
 
         Page<Book> response = bookRepository.findByCategoryId(category.getId(), pageable);
@@ -155,7 +151,6 @@ class BookRepositoryTest {
         Assertions.assertEquals(List.of(book1, book3), response.getContent());
         response.forEach(book -> Assertions.assertTrue(
                 book.getCategories().contains(category)));
-
     }
 
     private Book createBook(String title, String isbn, Category category) {

@@ -87,7 +87,6 @@ class BookServiceImplTest {
         expected.setDescription(requestDto.getDescription());
         expected.setCoverImage(requestDto.getCoverImage());
         expected.setCategoryIds(Set.of(1L));
-
         when(bookMapper.toModel(requestDto)).thenReturn(book);
         when(categoryRepository.findById(any(Long.class))).thenReturn(Optional.of(new Category()));
         when(bookRepository.save(book)).thenReturn(book);
@@ -103,11 +102,11 @@ class BookServiceImplTest {
     public void save_BookWithoutCategory_ThrowsEntityNotFoundException() {
         when(bookMapper.toModel(requestDto)).thenReturn(book);
         when(categoryRepository.findById(1L)).thenReturn(Optional.empty());
+        String expected = "There is no category with id " + 1;
 
         EntityNotFoundException exception = assertThrows(EntityNotFoundException.class, ()
                 -> bookService.save(requestDto));
 
-        String expected = "There is no category with id " + 1;
         String actual = exception.getMessage();
         assertEquals(expected, actual);
     }
@@ -194,12 +193,11 @@ class BookServiceImplTest {
     public void findBookById_InvalidId_ThrowsEntityNotFoundException() {
         Long id = 1L;
         when(bookRepository.findById(id)).thenReturn(Optional.empty());
+        String expected = "Can't find book with id " + id;
 
         EntityNotFoundException exception = assertThrows(EntityNotFoundException.class, ()
                 -> bookService.findBookById(id));
-
         String actual = exception.getMessage();
-        String expected = "Can't find book with id " + id;
 
         assertEquals(expected, actual);
     }
@@ -209,7 +207,6 @@ class BookServiceImplTest {
     public void update_Book_Success() {
         Long id = 1L;
         CreateBookRequestDto requestDto = getCreateBookRequestDto();
-
         Book updatedBook = updateBook(book, requestDto);
         BookDto bookDto = bookToDto(updatedBook);
         when(bookRepository.findById(id)).thenReturn(Optional.of(book));
@@ -227,12 +224,11 @@ class BookServiceImplTest {
         Long id = 1L;
         CreateBookRequestDto requestDto = getCreateBookRequestDto();
         when(bookRepository.findById(id)).thenReturn(Optional.empty());
+        String expected = "Can't find book with id " + id;
 
         EntityNotFoundException exception = assertThrows(EntityNotFoundException.class, ()
                 -> bookService.update(id, requestDto));
-
         String actual = exception.getMessage();
-        String expected = "Can't find book with id " + id;
 
         assertEquals(expected, actual);
     }
@@ -253,12 +249,11 @@ class BookServiceImplTest {
     public void deleteById_InvalidBookId_ThrowsEntityNotFoundException() {
         Long id = 1L;
         when(bookRepository.existsById(id)).thenReturn(false);
+        String expected = "Can't find book with id " + id;
 
         EntityNotFoundException exception = assertThrows(EntityNotFoundException.class, ()
                 -> bookService.deleteById(id));
-
         String actual = exception.getMessage();
-        String expected = "Can't find book with id " + id;
 
         assertEquals(expected, actual);
     }
@@ -270,18 +265,14 @@ class BookServiceImplTest {
         params.setAuthors(new String[]{"Author1", "Author2"});
         params.setTitles(new String[]{"Title1", "Title2"});
         params.setPriceRange(new String[]{"10", "40"});
-
         Pageable pageable = PageRequest.of(0, 20);
-
         Specification<Book> bookSpecification = (root, query, criteriaBuilder)
                 -> criteriaBuilder.conjunction();
-
         List<Book> books = List.of(
                 createBook("Title1", "12345"),
                 createBook("Title2", "67890")
         );
         Page<Book> bookPage = new PageImpl<>(books, pageable, books.size());
-
         when(specificationBuilder.build(params)).thenReturn(bookSpecification);
         when(bookRepository.findAll(bookSpecification, pageable)).thenReturn(bookPage);
         when(bookMapper.toDto(any(Book.class))).thenAnswer(invocation -> {
@@ -291,6 +282,7 @@ class BookServiceImplTest {
         List<BookDto> bookDtos = books.stream()
                 .map(this::bookToDto)
                 .toList();
+
         List<BookDto> response = bookService.search(params, pageable);
 
         assertEquals(bookDtos, response);
@@ -303,16 +295,15 @@ class BookServiceImplTest {
         params.setAuthors(new String[]{"InvalidAuthor"});
         params.setTitles(new String[]{"InvalidTitle"});
         params.setPriceRange(new String[]{"1000", "2000"});
-
         Pageable pageable = PageRequest.of(0, 20);
         Specification<Book> bookSpecification = (root, query, criteriaBuilder)
                 -> criteriaBuilder.disjunction();
         Page<Book> emptyBookPage = new PageImpl<>(Collections.emptyList(), pageable, 0);
-
         when(specificationBuilder.build(params)).thenReturn(bookSpecification);
         when(bookRepository.findAll(bookSpecification, pageable)).thenReturn(emptyBookPage);
 
         List<BookDto> response = bookService.search(params, pageable);
+
         assertTrue(response.isEmpty());
     }
 

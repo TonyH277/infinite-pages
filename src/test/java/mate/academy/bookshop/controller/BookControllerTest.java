@@ -1,5 +1,9 @@
 package mate.academy.bookshop.controller;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -23,7 +27,6 @@ import mate.academy.bookshop.dto.book.BookDto;
 import mate.academy.bookshop.dto.book.CreateBookRequestDto;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -42,6 +45,11 @@ import org.testcontainers.shaded.org.apache.commons.lang3.builder.EqualsBuilder;
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 class BookControllerTest {
 
+    private static final String BOOK_TITLE = "Book Title ";
+    private static final String BOOK_AUTHOR = "Author ";
+    private static final Double BOOK_PRICE = 10.99;
+    private static final String BOOK_DESCRIPTION = "Description for Book ";
+    private static final String BOOK_IMAGE = "coverImage";
     private static MockMvc mockMvc;
 
     @Autowired
@@ -93,9 +101,8 @@ class BookControllerTest {
     @WithMockUser(username = "user")
     @Test
     void getAll_DefaultPageableParams_ReturnsPageOfBooks() throws Exception {
+        List<BookDto> expected = getExpectedBooks();
         MvcResult result = mockMvc.perform(get("/books")
-                        .param("page", "0")
-                        .param("size", "20")
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
@@ -103,21 +110,20 @@ class BookControllerTest {
 
         List<BookDto> actual = objectMapper.readValue(result.getResponse().getContentAsString(),
                 objectMapper.getTypeFactory().constructCollectionType(List.class, BookDto.class));
-        List<BookDto> expected = getExpectedBooks();
 
-        Assertions.assertNotNull(actual);
-        Assertions.assertFalse(actual.isEmpty());
-        Assertions.assertEquals(expected.size(), actual.size());
-        for (int i = 0; i < expected.size(); i++) {
-            Assertions.assertTrue(EqualsBuilder.reflectionEquals(expected.get(i),
-                    actual.get(i), "id"));
-        }
+        assertNotNull(actual);
+        assertFalse(actual.isEmpty());
+        assertEquals(expected.size(), actual.size());
+        compareExpectedListToActualList(expected, actual);
     }
 
     @DisplayName("Get all books with custom pageable params")
     @WithMockUser(username = "user")
     @Test
     void getAll_CustomPageableParams_ReturnsCustomPageOfBooks() throws Exception {
+        List<BookDto> bookDtos = getExpectedBooks();
+        List<BookDto> expected = List.of(bookDtos.get(5), bookDtos.get(6));
+
         MvcResult result = mockMvc.perform(get("/books")
                         .param("page", "2")
                         .param("size", "2")
@@ -125,19 +131,13 @@ class BookControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andReturn();
-
         List<BookDto> actual = objectMapper.readValue(result.getResponse().getContentAsString(),
                 objectMapper.getTypeFactory().constructCollectionType(List.class, BookDto.class));
-        List<BookDto> bookDtos = getExpectedBooks();
-        List<BookDto> expected = List.of(bookDtos.get(5), bookDtos.get(6));
 
-        Assertions.assertNotNull(actual);
-        Assertions.assertFalse(actual.isEmpty());
-        Assertions.assertEquals(expected.size(), actual.size());
-        for (int i = 0; i < expected.size(); i++) {
-            Assertions.assertTrue(EqualsBuilder.reflectionEquals(expected.get(i),
-                    actual.get(i), "id"));
-        }
+        assertNotNull(actual);
+        assertFalse(actual.isEmpty());
+        assertEquals(expected.size(), actual.size());
+        compareExpectedListToActualList(expected, actual);
     }
 
     @DisplayName("Get book by ID when book exists")
@@ -146,18 +146,18 @@ class BookControllerTest {
     void getById_ValidId_ReturnsBookDto() throws Exception {
         Long id = 4L;
         int expectedBookIndex = 3;
+        List<BookDto> expected = getExpectedBooks();
+
         MvcResult result = mockMvc.perform(get("/books/{id}", id)
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andReturn();
-
         BookDto actual = objectMapper.readValue(result.getResponse().getContentAsString(),
                 BookDto.class);
-        List<BookDto> expected = getExpectedBooks();
 
-        Assertions.assertNotNull(actual);
-        Assertions.assertTrue(EqualsBuilder.reflectionEquals(expected.get(expectedBookIndex),
+        assertNotNull(actual);
+        assertTrue(EqualsBuilder.reflectionEquals(expected.get(expectedBookIndex),
                 actual, "id"));
     }
 
@@ -166,45 +166,46 @@ class BookControllerTest {
     @Test
     void getById_InvalidId_ThrowsEntityNotFoundException() throws Exception {
         Long invalidId = 24L;
+        String expected = "Can't find book with id " + invalidId;
+
         MvcResult result = mockMvc.perform(get("/books/{id}", invalidId)
                         .contentType(MediaType.APPLICATION_JSON))
                 .andReturn();
-
         String actual = result.getResolvedException().getMessage();
-        String expected = "Can't find book with id " + invalidId;
-        Assertions.assertEquals(expected, actual);
+
+        assertEquals(expected, actual);
     }
 
     @DisplayName("Search books with valid parameters and default pageable")
     @WithMockUser(username = "user")
     @Test
     void searchBooks_ValidParametersDefaultPageable_ReturnsPageOfBooks() throws Exception {
-
-        MvcResult result = mockMvc.perform(get("/books/search")
-                        .param("page", "0")
-                        .param("size", "20")
-                        .param("authors", "Author 1, Author 2, Author 3")
-                        .contentType(MediaType.APPLICATION_JSON))
-                .andReturn();
-
-        List<BookDto> actual = objectMapper.readValue(result.getResponse().getContentAsString(),
-                objectMapper.getTypeFactory().constructCollectionType(List.class, BookDto.class));
-
         List<BookDto> bookDtos = getExpectedBooks();
         List<BookDto> expected = List.of(bookDtos.get(0), bookDtos.get(1), bookDtos.get(2));
 
-        Assertions.assertNotNull(actual);
-        Assertions.assertEquals(expected.size(), actual.size());
-        for (int i = 0; i < expected.size(); i++) {
-            Assertions.assertTrue(EqualsBuilder.reflectionEquals(expected.get(i), actual.get(i),
-                    "id"));
-        }
+        MvcResult result = mockMvc.perform(get("/books/search")
+                        .param("authors", "Author 1, Author 2, Author 3")
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andReturn();
+        List<BookDto> actual = objectMapper.readValue(result.getResponse().getContentAsString(),
+                objectMapper.getTypeFactory().constructCollectionType(List.class, BookDto.class));
+
+        assertNotNull(actual);
+        assertEquals(expected.size(), actual.size());
+        compareExpectedListToActualList(expected, actual);
     }
 
     @DisplayName("Search books with valid parameters and custom pageable")
     @WithMockUser(username = "user")
     @Test
     void searchBooks_ValidParametersCustomPageable_ReturnsCustomPageOfBooks() throws Exception {
+        List<BookDto> bookDtos = getExpectedBooks();
+        List<BookDto> expected = bookDtos.stream()
+                .filter(bookDto -> bookDto.getAuthor().matches("Author [1-5]"))
+                .skip(3)
+                .limit(3)
+                .toList();
+
         MvcResult result = mockMvc.perform(get("/books/search")
                         .param("page", "1")
                         .param("size", "3")
@@ -217,19 +218,9 @@ class BookControllerTest {
         List<BookDto> actual = objectMapper.readValue(result.getResponse().getContentAsString(),
                 objectMapper.getTypeFactory().constructCollectionType(List.class, BookDto.class));
 
-        List<BookDto> bookDtos = getExpectedBooks();
-        List<BookDto> expected = bookDtos.stream()
-                .filter(bookDto -> bookDto.getAuthor().matches("Author [1-5]"))
-                .skip(3)
-                .limit(3)
-                .toList();
-
-        Assertions.assertNotNull(actual);
-        Assertions.assertEquals(expected.size(), actual.size());
-        for (int i = 0; i < expected.size(); i++) {
-            Assertions.assertTrue(EqualsBuilder.reflectionEquals(expected.get(i), actual.get(i),
-                    "id"));
-        }
+        assertNotNull(actual);
+        assertEquals(expected.size(), actual.size());
+        compareExpectedListToActualList(expected, actual);
     }
 
     @DisplayName("Create new book with valid request")
@@ -237,21 +228,19 @@ class BookControllerTest {
     @Test
     void create_ValidRequestDto_ReturnsBookResponseDto() throws Exception {
         CreateBookRequestDto newBook = getRequestDto();
-
         String jsonRequest = objectMapper.writeValueAsString(newBook);
+        BookDto expected = toBookDto(newBook);
 
         MvcResult result = mockMvc.perform(post("/books")
                         .content(jsonRequest)
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andReturn();
-
         BookDto actual = objectMapper.readValue(result.getResponse().getContentAsString(),
                 BookDto.class);
-        BookDto expected = toBookDto(newBook);
-        Assertions.assertNotNull(actual);
 
-        Assertions.assertTrue(EqualsBuilder.reflectionEquals(expected, actual, "id"));
+        assertNotNull(actual);
+        assertTrue(EqualsBuilder.reflectionEquals(expected, actual, "id"));
     }
 
     @DisplayName("Create new book with invalid request")
@@ -260,7 +249,6 @@ class BookControllerTest {
     void create_InvalidRequestDto_ThrowsValidationException() throws Exception {
         CreateBookRequestDto newBook = new CreateBookRequestDto();
         newBook.setTitle("New Book");
-
         String jsonRequest = objectMapper.writeValueAsString(newBook);
 
         MvcResult result = mockMvc.perform(post("/books")
@@ -268,9 +256,9 @@ class BookControllerTest {
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isBadRequest())
                 .andReturn();
-
         String actual = result.getResolvedException().getMessage();
-        Assertions.assertTrue(actual.contains("Validation failed"));
+
+        assertTrue(actual.contains("Validation failed"));
     }
 
     @DisplayName("Update book by ID with valid ID and request")
@@ -278,9 +266,9 @@ class BookControllerTest {
     @Test
     void updateById_ValidIdAndValidRequestDto_ReturnsBookResponseDto() throws Exception {
         CreateBookRequestDto updatedBook = getRequestDto();
-
         Long id = 1L;
         String jsonRequest = objectMapper.writeValueAsString(updatedBook);
+        BookDto expected = toBookDto(updatedBook);
 
         MvcResult result = mockMvc.perform(put("/books/{id}", id)
                         .content(jsonRequest)
@@ -288,13 +276,11 @@ class BookControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andReturn();
-
         BookDto actual = objectMapper.readValue(result.getResponse().getContentAsString(),
                 BookDto.class);
-        BookDto expected = toBookDto(updatedBook);
 
-        Assertions.assertNotNull(actual);
-        Assertions.assertTrue(EqualsBuilder.reflectionEquals(expected, actual, "id"));
+        assertNotNull(actual);
+        assertTrue(EqualsBuilder.reflectionEquals(expected, actual, "id"));
     }
 
     @DisplayName("Update book by ID with invalid ID")
@@ -302,18 +288,17 @@ class BookControllerTest {
     @Test
     void updateById_InvalidId_ThrowsValidationException() throws Exception {
         CreateBookRequestDto updatedBook = getRequestDto();
-
         Long invalidId = 24L;
         String jsonRequest = objectMapper.writeValueAsString(updatedBook);
+        String expected = "Can't find book with id " + invalidId;
 
         MvcResult result = mockMvc.perform(put("/books/{id}", invalidId)
                         .content(jsonRequest)
                         .contentType(MediaType.APPLICATION_JSON))
                 .andReturn();
-
         String actual = result.getResolvedException().getMessage();
-        String expected = "Can't find book with id " + invalidId;
-        Assertions.assertEquals(expected, actual);
+
+        assertEquals(expected, actual);
     }
 
     @DisplayName("Delete book by ID with valid ID")
@@ -321,6 +306,7 @@ class BookControllerTest {
     @Test
     void deleteById_ValidId_Success() throws Exception {
         Long id = 4L;
+        String expected = "Can't find book with id " + id;
         mockMvc.perform(delete("/books/{id}", id)
                         .contentType(MediaType.APPLICATION_JSON))
                 .andReturn();
@@ -329,10 +315,9 @@ class BookControllerTest {
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound())
                 .andReturn();
-
         String actual = result.getResolvedException().getMessage();
-        String expected = "Can't find book with id " + id;
-        Assertions.assertEquals(expected, actual);
+
+        assertEquals(expected, actual);
     }
 
     @DisplayName("Delete book by ID with invalid ID")
@@ -340,13 +325,14 @@ class BookControllerTest {
     @Test
     void deleteById_InvalidId_ThrowsEntityNotFoundException() throws Exception {
         Long invalidId = 24L;
+        String expected = "Can't find book with id " + invalidId;
+
         MvcResult result = mockMvc.perform(delete("/books/{id}", invalidId)
                         .contentType(MediaType.APPLICATION_JSON))
                 .andReturn();
-
         String actual = result.getResolvedException().getMessage();
-        String expected = "Can't find book with id " + invalidId;
-        Assertions.assertEquals(expected, actual);
+
+        assertEquals(expected, actual);
 
     }
 
@@ -354,12 +340,12 @@ class BookControllerTest {
         return IntStream.rangeClosed(1, 20)
                 .mapToObj(i -> {
                     BookDto bookDto = new BookDto();
-                    bookDto.setTitle("Book Title " + i);
-                    bookDto.setAuthor("Author " + i);
-                    bookDto.setPrice(BigDecimal.valueOf(10.99 + i - 1)
+                    bookDto.setTitle(BOOK_TITLE + i);
+                    bookDto.setAuthor(BOOK_AUTHOR + i);
+                    bookDto.setPrice(BigDecimal.valueOf(BOOK_PRICE + i - 1)
                             .setScale(2, RoundingMode.HALF_UP));
-                    bookDto.setDescription("Description for Book " + i);
-                    bookDto.setCoverImage("coverImage" + i + ".jpg");
+                    bookDto.setDescription(BOOK_DESCRIPTION + i);
+                    bookDto.setCoverImage(BOOK_IMAGE + i + ".jpg");
                     bookDto.setCategoryIds(Set.of(1L));
                     return bookDto;
                 })
@@ -387,5 +373,12 @@ class BookControllerTest {
         updatedBook.setCategories(Set.of(1L));
         updatedBook.setIsbn("67890-236589");
         return updatedBook;
+    }
+
+    private void compareExpectedListToActualList(List<?> expected, List<?> actual) {
+        for (int i = 0; i < expected.size(); i++) {
+            assertTrue(EqualsBuilder
+                    .reflectionEquals(expected.get(i), actual.get(i), "id"));
+        }
     }
 }

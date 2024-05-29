@@ -1,5 +1,8 @@
 package mate.academy.bookshop.controller;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -22,7 +25,6 @@ import mate.academy.bookshop.dto.book.BookDtoWithoutCategoryIds;
 import mate.academy.bookshop.dto.category.CategoryRequestDto;
 import mate.academy.bookshop.dto.category.CategoryResponseDto;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -85,8 +87,6 @@ class CategoryControllerTest {
     @Test
     void getAll_DefaultPageableParams_ReturnsPageOfCategories() throws Exception {
         MvcResult result = mockMvc.perform(get("/categories")
-                        .param("page", "0")
-                        .param("size", "20")
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
@@ -99,12 +99,9 @@ class CategoryControllerTest {
                                 CategoryResponseDto.class));
         List<CategoryResponseDto> expected = getExpectedCategories();
 
-        Assertions.assertNotNull(actual);
-        Assertions.assertEquals(expected.size(), actual.size());
-        for (int i = 0; i < expected.size(); i++) {
-            Assertions.assertTrue(EqualsBuilder
-                    .reflectionEquals(expected.get(i), actual.get(i), "id"));
-        }
+        assertNotNull(actual);
+        assertEquals(expected.size(), actual.size());
+        compareExpectedListToActualList(expected, actual);
     }
 
     @DisplayName("Get category by ID when category exists")
@@ -112,7 +109,6 @@ class CategoryControllerTest {
     @Test
     void getById_ExistingCategoryId_ReturnsCategory() throws Exception {
         Long id = 1L;
-
         MvcResult result = mockMvc.perform(get("/categories/{id}", id)
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
@@ -122,9 +118,9 @@ class CategoryControllerTest {
                         .getResponse().getContentAsString(),
                 CategoryResponseDto.class);
         List<CategoryResponseDto> categoryResponseDtos = getExpectedCategories();
-        CategoryResponseDto expected = categoryResponseDtos.get(0);
 
-        Assertions.assertNotNull(actual);
+        CategoryResponseDto expected = categoryResponseDtos.get(0);
+        assertNotNull(actual);
         EqualsBuilder.reflectionEquals(expected, actual, "id");
     }
 
@@ -135,8 +131,6 @@ class CategoryControllerTest {
         Long id = 1L;
         List<BookDtoWithoutCategoryIds> expected = getBooksWithoutCategories();
         MvcResult result = mockMvc.perform(get("/categories/{id}/books", id)
-                        .param("page", "0")
-                        .param("size", "20")
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
@@ -148,12 +142,9 @@ class CategoryControllerTest {
                 objectMapper.getTypeFactory()
                         .constructCollectionType(List.class, BookDtoWithoutCategoryIds.class));
 
-        Assertions.assertNotNull(actual);
-        Assertions.assertEquals(expected.size(), actual.size());
-        for (int i = 0; i < expected.size(); i++) {
-            Assertions.assertTrue(EqualsBuilder
-                    .reflectionEquals(expected.get(i), actual.get(i), "id"));
-        }
+        assertNotNull(actual);
+        assertEquals(expected.size(), actual.size());
+        compareExpectedListToActualList(expected, actual);
     }
 
     @DisplayName("Add new category")
@@ -177,7 +168,7 @@ class CategoryControllerTest {
         CategoryResponseDto expected = new CategoryResponseDto(1L, "Fiction",
                 "Fiction description");
 
-        Assertions.assertNotNull(actual);
+        assertNotNull(actual);
         EqualsBuilder.reflectionEquals(expected, actual, "id");
     }
 
@@ -201,9 +192,8 @@ class CategoryControllerTest {
                 CategoryResponseDto.class);
         CategoryResponseDto expected = new CategoryResponseDto(1L, "Fiction",
                 "Fiction description");
-
-        Assertions.assertNotNull(actual);
-        Assertions.assertEquals(expected, actual);
+        assertNotNull(actual);
+        assertEquals(expected, actual);
     }
 
     @DisplayName("Delete existing category")
@@ -211,7 +201,6 @@ class CategoryControllerTest {
     @Test
     void delete_ExistingCategory_DeletesCategory() throws Exception {
         Long id = 1L;
-
         mockMvc.perform(delete("/categories/{id}", id)
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNoContent());
@@ -223,7 +212,7 @@ class CategoryControllerTest {
 
         String actual = result.getResolvedException().getMessage();
         String expected = "Category not found with id: " + id;
-        Assertions.assertEquals(expected, actual);
+        assertEquals(expected, actual);
     }
 
     private List<CategoryResponseDto> getExpectedCategories() {
@@ -234,6 +223,13 @@ class CategoryControllerTest {
                     return categoryDto;
                 })
                 .collect(Collectors.toList());
+    }
+
+    private void compareExpectedListToActualList(List<?> expected, List<?> actual) {
+        for (int i = 0; i < expected.size(); i++) {
+            assertTrue(EqualsBuilder
+                    .reflectionEquals(expected.get(i), actual.get(i), "id"));
+        }
     }
 
     private List<BookDtoWithoutCategoryIds> getBooksWithoutCategories() {
