@@ -40,6 +40,24 @@ import org.springframework.data.jpa.domain.Specification;
 @ExtendWith(MockitoExtension.class)
 class BookServiceImplTest {
 
+    private static final String AUTHOR = "Author";
+    private static final String ISBN = "2131231";
+    private static final BigDecimal PRICE = BigDecimal.TEN;
+    private static final String TITLE = "Title";
+    private static final String DESCRIPTION = "Description";
+    private static final String COVER_IMAGE = "coverImage";
+    private static final Set<Long> CATEGORY_IDS = Set.of(1L);
+    private static final String UPDATED_AUTHOR = "Updated Author";
+    private static final String UPDATED_ISBN = "234567";
+    private static final BigDecimal UPDATED_PRICE = BigDecimal.ONE;
+    private static final String UPDATED_DESCRIPTION = "Updated description";
+    private static final String UPDATED_COVER_IMAGE = "Updated cover image";
+    private static final Long BOOK_ID = 1L;
+    private static final String EXPECTED_CATEGORY_NOT_FOUND_MESSAGE
+            = "There is no category with id " + 1;
+    private static final String EXPECTED_BOOK_NOT_FOUND_MESSAGE
+            = "Can't find book with id " + BOOK_ID;
+
     @Mock
     private BookSpecificationBuilder specificationBuilder;
     @Mock
@@ -53,27 +71,26 @@ class BookServiceImplTest {
     private BookServiceImpl bookService;
 
     private CreateBookRequestDto requestDto;
-
     private Book book;
 
     @BeforeEach
     void setUp() {
         requestDto = new CreateBookRequestDto();
-        requestDto.setAuthor("Author");
-        requestDto.setIsbn("2131231");
-        requestDto.setPrice(BigDecimal.TEN);
-        requestDto.setTitle("Title");
-        requestDto.setDescription("Description");
-        requestDto.setCoverImage("coverImage");
-        requestDto.setCategories(Set.of(1L));
+        requestDto.setAuthor(AUTHOR);
+        requestDto.setIsbn(ISBN);
+        requestDto.setPrice(PRICE);
+        requestDto.setTitle(TITLE);
+        requestDto.setDescription(DESCRIPTION);
+        requestDto.setCoverImage(COVER_IMAGE);
+        requestDto.setCategories(CATEGORY_IDS);
 
         book = new Book();
-        book.setAuthor(requestDto.getAuthor());
-        book.setIsbn(requestDto.getIsbn());
-        book.setPrice(requestDto.getPrice());
-        book.setTitle(requestDto.getTitle());
-        book.setDescription(requestDto.getDescription());
-        book.setCoverImage(requestDto.getCoverImage());
+        book.setAuthor(AUTHOR);
+        book.setIsbn(ISBN);
+        book.setPrice(PRICE);
+        book.setTitle(TITLE);
+        book.setDescription(DESCRIPTION);
+        book.setCoverImage(COVER_IMAGE);
         book.setCategories(Set.of(new Category()));
     }
 
@@ -81,12 +98,12 @@ class BookServiceImplTest {
     @Test
     public void save_ValidBook_returnsBookDto() {
         BookDto expected = new BookDto();
-        expected.setAuthor(requestDto.getAuthor());
-        expected.setPrice(requestDto.getPrice());
-        expected.setTitle(requestDto.getTitle());
-        expected.setDescription(requestDto.getDescription());
-        expected.setCoverImage(requestDto.getCoverImage());
-        expected.setCategoryIds(Set.of(1L));
+        expected.setAuthor(AUTHOR);
+        expected.setPrice(PRICE);
+        expected.setTitle(TITLE);
+        expected.setDescription(DESCRIPTION);
+        expected.setCoverImage(COVER_IMAGE);
+        expected.setCategoryIds(CATEGORY_IDS);
         when(bookMapper.toModel(requestDto)).thenReturn(book);
         when(categoryRepository.findById(any(Long.class))).thenReturn(Optional.of(new Category()));
         when(bookRepository.save(book)).thenReturn(book);
@@ -102,13 +119,12 @@ class BookServiceImplTest {
     public void save_BookWithoutCategory_ThrowsEntityNotFoundException() {
         when(bookMapper.toModel(requestDto)).thenReturn(book);
         when(categoryRepository.findById(1L)).thenReturn(Optional.empty());
-        String expected = "There is no category with id " + 1;
 
         EntityNotFoundException exception = assertThrows(EntityNotFoundException.class, ()
                 -> bookService.save(requestDto));
 
         String actual = exception.getMessage();
-        assertEquals(expected, actual);
+        assertEquals(EXPECTED_CATEGORY_NOT_FOUND_MESSAGE, actual);
     }
 
     @DisplayName("Find all book default pageable params")
@@ -181,9 +197,9 @@ class BookServiceImplTest {
     public void findBookById_ValidId_ReturnsBookDto() {
         BookDto bookDto = bookToDto(book);
         when(bookMapper.toDto(book)).thenReturn(bookDto);
-        when(bookRepository.findById(1L)).thenReturn(Optional.of(book));
+        when(bookRepository.findById(BOOK_ID)).thenReturn(Optional.of(book));
 
-        BookDto response = bookService.findBookById(1L);
+        BookDto response = bookService.findBookById(BOOK_ID);
 
         assertEquals(bookDto, response);
     }
@@ -191,29 +207,26 @@ class BookServiceImplTest {
     @DisplayName("Find book by id with invalid id")
     @Test
     public void findBookById_InvalidId_ThrowsEntityNotFoundException() {
-        Long id = 1L;
-        when(bookRepository.findById(id)).thenReturn(Optional.empty());
-        String expected = "Can't find book with id " + id;
+        when(bookRepository.findById(BOOK_ID)).thenReturn(Optional.empty());
 
         EntityNotFoundException exception = assertThrows(EntityNotFoundException.class, ()
-                -> bookService.findBookById(id));
+                -> bookService.findBookById(BOOK_ID));
         String actual = exception.getMessage();
 
-        assertEquals(expected, actual);
+        assertEquals(EXPECTED_BOOK_NOT_FOUND_MESSAGE, actual);
     }
 
     @DisplayName("Update book with valid data")
     @Test
     public void update_Book_Success() {
-        Long id = 1L;
         CreateBookRequestDto requestDto = getCreateBookRequestDto();
         Book updatedBook = updateBook(book, requestDto);
         BookDto bookDto = bookToDto(updatedBook);
-        when(bookRepository.findById(id)).thenReturn(Optional.of(book));
+        when(bookRepository.findById(BOOK_ID)).thenReturn(Optional.of(book));
         when(bookRepository.save(updatedBook)).thenReturn(updatedBook);
         when(bookMapper.toDto(updatedBook)).thenReturn(bookDto);
 
-        BookDto response = bookService.update(id, requestDto);
+        BookDto response = bookService.update(BOOK_ID, requestDto);
 
         assertEquals(bookDto, response);
     }
@@ -221,41 +234,36 @@ class BookServiceImplTest {
     @DisplayName("Update book with invalid id")
     @Test
     public void update_InvalidBookId_ThrowsEntityNotFoundException() {
-        Long id = 1L;
         CreateBookRequestDto requestDto = getCreateBookRequestDto();
-        when(bookRepository.findById(id)).thenReturn(Optional.empty());
-        String expected = "Can't find book with id " + id;
+        when(bookRepository.findById(BOOK_ID)).thenReturn(Optional.empty());
 
         EntityNotFoundException exception = assertThrows(EntityNotFoundException.class, ()
-                -> bookService.update(id, requestDto));
+                -> bookService.update(BOOK_ID, requestDto));
         String actual = exception.getMessage();
 
-        assertEquals(expected, actual);
+        assertEquals(EXPECTED_BOOK_NOT_FOUND_MESSAGE, actual);
     }
 
     @DisplayName("Delete book by id with valid id")
     @Test
     public void deleteById_ValidBookId_DeleteBookFromDatabase() {
-        Long id = 1L;
-        when(bookRepository.existsById(id)).thenReturn(true);
+        when(bookRepository.existsById(BOOK_ID)).thenReturn(true);
 
-        bookService.deleteById(id);
+        bookService.deleteById(BOOK_ID);
 
-        verify(bookRepository).deleteById(id);
+        verify(bookRepository).deleteById(BOOK_ID);
     }
 
     @DisplayName("Delete book by id with invalid id")
     @Test
     public void deleteById_InvalidBookId_ThrowsEntityNotFoundException() {
-        Long id = 1L;
-        when(bookRepository.existsById(id)).thenReturn(false);
-        String expected = "Can't find book with id " + id;
+        when(bookRepository.existsById(BOOK_ID)).thenReturn(false);
 
         EntityNotFoundException exception = assertThrows(EntityNotFoundException.class, ()
-                -> bookService.deleteById(id));
+                -> bookService.deleteById(BOOK_ID));
         String actual = exception.getMessage();
 
-        assertEquals(expected, actual);
+        assertEquals(EXPECTED_BOOK_NOT_FOUND_MESSAGE, actual);
     }
 
     @DisplayName("Search books with default pageable and valid params")
@@ -309,12 +317,12 @@ class BookServiceImplTest {
 
     private Book createBook(String title, String isbn) {
         Book book = new Book();
-        book.setAuthor("Author2");
+        book.setAuthor(AUTHOR);
         book.setIsbn(isbn);
-        book.setPrice(BigDecimal.TEN);
+        book.setPrice(PRICE);
         book.setTitle(title);
-        book.setDescription("Description2");
-        book.setCoverImage("coverImage2");
+        book.setDescription(DESCRIPTION);
+        book.setCoverImage(COVER_IMAGE);
         book.setCategories(Set.of(new Category()));
         return book;
     }
@@ -349,12 +357,12 @@ class BookServiceImplTest {
 
     private CreateBookRequestDto getCreateBookRequestDto() {
         CreateBookRequestDto requestDto = new CreateBookRequestDto();
-        requestDto.setAuthor("Updated Author");
-        requestDto.setPrice(BigDecimal.ONE);
-        requestDto.setIsbn("234567");
-        requestDto.setDescription("Updated description");
-        requestDto.setCoverImage("Updated cover image");
-        requestDto.setCategories(Set.of(1L));
+        requestDto.setAuthor(UPDATED_AUTHOR);
+        requestDto.setPrice(UPDATED_PRICE);
+        requestDto.setIsbn(UPDATED_ISBN);
+        requestDto.setDescription(UPDATED_DESCRIPTION);
+        requestDto.setCoverImage(UPDATED_COVER_IMAGE);
+        requestDto.setCategories(CATEGORY_IDS);
         return requestDto;
     }
 }

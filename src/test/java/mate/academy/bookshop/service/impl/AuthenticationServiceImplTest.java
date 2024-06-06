@@ -38,6 +38,14 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 @ExtendWith(MockitoExtension.class)
 class AuthenticationServiceImplTest {
 
+    private static final String EMAIL = "user@example.com";
+    private static final String PASSWORD = "password";
+    private static final String ENCODED_PASSWORD = "encodedPassword";
+    private static final String MOCKED_TOKEN = "mockedToken";
+    private static final String BAD_CREDENTIALS_MESSAGE = "Bad credentials";
+    private static final String REGISTRATION_EXCEPTION_MESSAGE
+            = "There is another user with email ";
+
     @Mock
     private UserRepository userRepository;
     @Mock
@@ -64,8 +72,8 @@ class AuthenticationServiceImplTest {
     @BeforeEach
     void setUp() {
         requestDto = new UserRegistrationRequestDto();
-        requestDto.setEmail("user@example.com");
-        requestDto.setPassword("password");
+        requestDto.setEmail(EMAIL);
+        requestDto.setPassword(PASSWORD);
 
         user = new User();
         user.setEmail(requestDto.getEmail());
@@ -83,7 +91,7 @@ class AuthenticationServiceImplTest {
     void register_UserWithUniqueEmail_returnsUserResponseDto() throws RegistrationException {
         when(userRepository.existsByEmail(requestDto.getEmail())).thenReturn(false);
         when(userMapper.toModel(requestDto)).thenReturn(user);
-        when(passwordEncoder.encode(user.getPassword())).thenReturn("encodedPassword");
+        when(passwordEncoder.encode(user.getPassword())).thenReturn(ENCODED_PASSWORD);
         when(roleRepository.findByName(RoleName.ROLE_USER)).thenReturn(Set.of(new Role()));
         when(userRepository.save(user)).thenReturn(user);
         when(userMapper.toDto(user)).thenReturn(userResponseDto);
@@ -97,7 +105,7 @@ class AuthenticationServiceImplTest {
     @Test
     void register_UserWithNotUniqueEmail_ThrowsRegistrationException() {
         when(userRepository.existsByEmail(requestDto.getEmail())).thenReturn(true);
-        String expected = "There is another user with email " + requestDto.getEmail();
+        String expected = REGISTRATION_EXCEPTION_MESSAGE + requestDto.getEmail();
 
         RegistrationException exception = assertThrows(RegistrationException.class, ()
                 -> authenticationService.register(requestDto));
@@ -109,12 +117,11 @@ class AuthenticationServiceImplTest {
     @DisplayName("Login with valid credentials returns token")
     @Test
     void login_ValidCredentials_ReturnsToken() {
-        UserLoginRequestDto loginRequestDto = new UserLoginRequestDto("user@example.com",
-                "password");
+        UserLoginRequestDto loginRequestDto = new UserLoginRequestDto(EMAIL, PASSWORD);
         Authentication authentication = new UsernamePasswordAuthenticationToken(
                 loginRequestDto.email(),
                 loginRequestDto.password());
-        String expectedToken = "mockedToken";
+        String expectedToken = MOCKED_TOKEN;
         when(authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(loginRequestDto.email(),
                         loginRequestDto.password())))
@@ -132,17 +139,15 @@ class AuthenticationServiceImplTest {
     @DisplayName("Login with invalid credentials throws AuthenticationException")
     @Test
     void login_InvalidCredentials_ThrowsAuthenticationException() {
-        String expected = "Bad credentials";
-        UserLoginRequestDto loginRequestDto = new UserLoginRequestDto("user@example.com",
-                "password");
+        UserLoginRequestDto loginRequestDto = new UserLoginRequestDto(EMAIL, PASSWORD);
         when(authenticationManager.authenticate(
                 any(UsernamePasswordAuthenticationToken.class)))
-                .thenThrow(new BadCredentialsException(expected));
+                .thenThrow(new BadCredentialsException(BAD_CREDENTIALS_MESSAGE));
 
         AuthenticationException exception = assertThrows(AuthenticationException.class, () ->
                 authenticationService.login(loginRequestDto));
         String actual = exception.getMessage();
 
-        assertEquals(expected, actual);
+        assertEquals(BAD_CREDENTIALS_MESSAGE, actual);
     }
 }
