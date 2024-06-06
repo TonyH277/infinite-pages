@@ -44,6 +44,18 @@ import org.testcontainers.shaded.org.apache.commons.lang3.builder.EqualsBuilder;
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 class CategoryControllerTest {
 
+    private static final String CATEGORY_BASE_URL = "/categories";
+    private static final String CATEGORY_BOOKS_URL = CATEGORY_BASE_URL + "/{id}/books";
+    private static final String CATEGORY_ID_URL = CATEGORY_BASE_URL + "/{id}";
+    private static final String CLEAR_CATEGORIES_SCRIPT
+            = "database/categories/clear-categories.sql";
+    private static final String ADD_CATEGORIES_SCRIPT = "database/categories/add-categories.sql";
+    private static final String CATEGORY_NOT_FOUND_MSG = "Category not found with id: ";
+    private static final String CONTENT_TYPE_JSON = MediaType.APPLICATION_JSON.toString();
+    private static final String CATEGORY_NAME = "Fiction";
+    private static final String CATEGORY_DESCRIPTION = "Fiction description";
+    private static final Long TEST_CATEGORY_ID = 1L;
+
     private static MockMvc mockMvc;
 
     @Autowired
@@ -64,7 +76,7 @@ class CategoryControllerTest {
         try (Connection connection = dataSource.getConnection()) {
             connection.setAutoCommit(true);
             ScriptUtils.executeSqlScript(connection,
-                    new ClassPathResource("database/categories/clear-categories.sql"));
+                    new ClassPathResource(CLEAR_CATEGORIES_SCRIPT));
         }
     }
 
@@ -72,8 +84,7 @@ class CategoryControllerTest {
     void setup(@Autowired DataSource dataSource) throws SQLException {
         try (Connection connection = dataSource.getConnection()) {
             connection.setAutoCommit(true);
-            ScriptUtils.executeSqlScript(connection,
-                    new ClassPathResource("database/categories/add-categories.sql"));
+            ScriptUtils.executeSqlScript(connection, new ClassPathResource(ADD_CATEGORIES_SCRIPT));
         }
     }
 
@@ -86,7 +97,7 @@ class CategoryControllerTest {
     @WithMockUser(username = "user")
     @Test
     void getAll_DefaultPageableParams_ReturnsPageOfCategories() throws Exception {
-        MvcResult result = mockMvc.perform(get("/categories")
+        MvcResult result = mockMvc.perform(get(CATEGORY_BASE_URL)
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
@@ -95,8 +106,7 @@ class CategoryControllerTest {
         List<CategoryResponseDto> actual = objectMapper.readValue(result
                         .getResponse().getContentAsString(),
                 objectMapper.getTypeFactory()
-                        .constructCollectionType(List.class,
-                                CategoryResponseDto.class));
+                        .constructCollectionType(List.class, CategoryResponseDto.class));
         List<CategoryResponseDto> expected = getExpectedCategories();
 
         assertNotNull(actual);
@@ -108,8 +118,7 @@ class CategoryControllerTest {
     @WithMockUser(username = "user")
     @Test
     void getById_ExistingCategoryId_ReturnsCategory() throws Exception {
-        Long id = 1L;
-        MvcResult result = mockMvc.perform(get("/categories/{id}", id)
+        MvcResult result = mockMvc.perform(get(CATEGORY_ID_URL, TEST_CATEGORY_ID)
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andReturn();
@@ -128,17 +137,15 @@ class CategoryControllerTest {
     @WithMockUser(username = "user")
     @Test
     void getBooksByCategoryId_ExistingCategoryId_ReturnsPageOfBooks() throws Exception {
-        Long id = 1L;
         List<BookDtoWithoutCategoryIds> expected = getBooksWithoutCategories();
-        MvcResult result = mockMvc.perform(get("/categories/{id}/books", id)
+        MvcResult result = mockMvc.perform(get(CATEGORY_BOOKS_URL, TEST_CATEGORY_ID)
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andReturn();
 
         List<BookDtoWithoutCategoryIds> actual = objectMapper.readValue(result
-                        .getResponse()
-                        .getContentAsString(),
+                        .getResponse().getContentAsString(),
                 objectMapper.getTypeFactory()
                         .constructCollectionType(List.class, BookDtoWithoutCategoryIds.class));
 
@@ -151,11 +158,10 @@ class CategoryControllerTest {
     @WithMockUser(username = "admin", roles = {"ADMIN"})
     @Test
     void add_NewCategory_CreatesCategory() throws Exception {
-        CategoryRequestDto requestDto = new CategoryRequestDto("Fiction",
-                "Fiction description");
+        CategoryRequestDto requestDto = new CategoryRequestDto(CATEGORY_NAME, CATEGORY_DESCRIPTION);
         String requestBody = objectMapper.writeValueAsString(requestDto);
 
-        MvcResult result = mockMvc.perform(post("/categories")
+        MvcResult result = mockMvc.perform(post(CATEGORY_BASE_URL)
                         .content(requestBody)
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isCreated())
@@ -165,8 +171,9 @@ class CategoryControllerTest {
         CategoryResponseDto actual = objectMapper.readValue(result
                         .getResponse().getContentAsString(),
                 CategoryResponseDto.class);
-        CategoryResponseDto expected = new CategoryResponseDto(1L, "Fiction",
-                "Fiction description");
+        CategoryResponseDto expected = new CategoryResponseDto(TEST_CATEGORY_ID,
+                CATEGORY_NAME,
+                CATEGORY_DESCRIPTION);
 
         assertNotNull(actual);
         EqualsBuilder.reflectionEquals(expected, actual, "id");
@@ -176,12 +183,10 @@ class CategoryControllerTest {
     @WithMockUser(username = "admin", roles = {"ADMIN"})
     @Test
     void update_ExistingCategory_UpdatesCategory() throws Exception {
-        Long id = 1L;
-        CategoryRequestDto requestDto = new CategoryRequestDto("Fiction",
-                "Fiction description");
+        CategoryRequestDto requestDto = new CategoryRequestDto(CATEGORY_NAME, CATEGORY_DESCRIPTION);
         String requestBody = objectMapper.writeValueAsString(requestDto);
 
-        MvcResult result = mockMvc.perform(put("/categories/{id}", id)
+        MvcResult result = mockMvc.perform(put(CATEGORY_ID_URL, TEST_CATEGORY_ID)
                         .content(requestBody)
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
@@ -190,8 +195,9 @@ class CategoryControllerTest {
         CategoryResponseDto actual = objectMapper.readValue(result
                         .getResponse().getContentAsString(),
                 CategoryResponseDto.class);
-        CategoryResponseDto expected = new CategoryResponseDto(1L, "Fiction",
-                "Fiction description");
+        CategoryResponseDto expected = new CategoryResponseDto(TEST_CATEGORY_ID,
+                CATEGORY_NAME,
+                CATEGORY_DESCRIPTION);
         assertNotNull(actual);
         assertEquals(expected, actual);
     }
@@ -200,18 +206,17 @@ class CategoryControllerTest {
     @WithMockUser(username = "admin", roles = {"ADMIN"})
     @Test
     void delete_ExistingCategory_DeletesCategory() throws Exception {
-        Long id = 1L;
-        mockMvc.perform(delete("/categories/{id}", id)
+        mockMvc.perform(delete(CATEGORY_ID_URL, TEST_CATEGORY_ID)
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNoContent());
 
-        MvcResult result = mockMvc.perform(get("/categories/{id}", id)
+        MvcResult result = mockMvc.perform(get(CATEGORY_ID_URL, TEST_CATEGORY_ID)
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isNotFound())
                 .andReturn();
 
         String actual = result.getResolvedException().getMessage();
-        String expected = "Category not found with id: " + id;
+        String expected = CATEGORY_NOT_FOUND_MSG + TEST_CATEGORY_ID;
         assertEquals(expected, actual);
     }
 
@@ -247,5 +252,4 @@ class CategoryControllerTest {
                 })
                 .toList();
     }
-
 }

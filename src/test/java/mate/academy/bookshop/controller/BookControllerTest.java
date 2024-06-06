@@ -47,9 +47,24 @@ class BookControllerTest {
 
     private static final String BOOK_TITLE = "Book Title ";
     private static final String BOOK_AUTHOR = "Author ";
-    private static final Double BOOK_PRICE = 10.99;
+    private static final double BOOK_PRICE = 10.99;
     private static final String BOOK_DESCRIPTION = "Description for Book ";
     private static final String BOOK_IMAGE = "coverImage";
+    private static final String MEDIA_TYPE_JSON = MediaType.APPLICATION_JSON.toString();
+    private static final Long CATEGORY_ID = 1L;
+    private static final String BOOK_ID_PATH = "/books/{id}";
+    private static final String BOOKS_PATH = "/books";
+    private static final String BOOKS_SEARCH_PATH = "/books/search";
+    private static final String PARAM_PAGE = "page";
+    private static final String PARAM_SIZE = "size";
+    private static final String PARAM_AUTHORS = "authors";
+    private static final String USER_ROLE = "user";
+    private static final String ADMIN_ROLE = "admin";
+    private static final String ROLE_ADMIN = "ADMIN";
+    private static final Long INVALID_ID = 24L;
+    private static final String CANNOT_FIND_BOOK = "Can't find book with id ";
+    private static final String VALIDATION_FAILED = "Validation failed";
+
     private static MockMvc mockMvc;
 
     @Autowired
@@ -71,9 +86,7 @@ class BookControllerTest {
     }
 
     @AfterAll
-    static void afterAll(
-            @Autowired DataSource dataSource
-    ) {
+    static void afterAll(@Autowired DataSource dataSource) {
         teardown(dataSource);
     }
 
@@ -87,9 +100,7 @@ class BookControllerTest {
     }
 
     @AfterEach
-    void clearUp(
-            @Autowired DataSource dataSource
-    ) throws SQLException {
+    void clearUp(@Autowired DataSource dataSource) throws SQLException {
         try (Connection connection = dataSource.getConnection()) {
             connection.setAutoCommit(true);
             ScriptUtils.executeSqlScript(connection,
@@ -98,14 +109,14 @@ class BookControllerTest {
     }
 
     @DisplayName("Get all books with default pageable params")
-    @WithMockUser(username = "user")
+    @WithMockUser(username = USER_ROLE)
     @Test
     void getAll_DefaultPageableParams_ReturnsPageOfBooks() throws Exception {
         List<BookDto> expected = getExpectedBooks();
-        MvcResult result = mockMvc.perform(get("/books")
-                        .contentType(MediaType.APPLICATION_JSON))
+        MvcResult result = mockMvc.perform(get(BOOKS_PATH)
+                        .contentType(MEDIA_TYPE_JSON))
                 .andExpect(status().isOk())
-                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(content().contentType(MEDIA_TYPE_JSON))
                 .andReturn();
 
         List<BookDto> actual = objectMapper.readValue(result.getResponse().getContentAsString(),
@@ -118,18 +129,18 @@ class BookControllerTest {
     }
 
     @DisplayName("Get all books with custom pageable params")
-    @WithMockUser(username = "user")
+    @WithMockUser(username = USER_ROLE)
     @Test
     void getAll_CustomPageableParams_ReturnsCustomPageOfBooks() throws Exception {
         List<BookDto> bookDtos = getExpectedBooks();
         List<BookDto> expected = List.of(bookDtos.get(5), bookDtos.get(6));
 
-        MvcResult result = mockMvc.perform(get("/books")
-                        .param("page", "2")
-                        .param("size", "2")
-                        .contentType(MediaType.APPLICATION_JSON))
+        MvcResult result = mockMvc.perform(get(BOOKS_PATH)
+                        .param(PARAM_PAGE, "2")
+                        .param(PARAM_SIZE, "2")
+                        .contentType(MEDIA_TYPE_JSON))
                 .andExpect(status().isOk())
-                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(content().contentType(MEDIA_TYPE_JSON))
                 .andReturn();
         List<BookDto> actual = objectMapper.readValue(result.getResponse().getContentAsString(),
                 objectMapper.getTypeFactory().constructCollectionType(List.class, BookDto.class));
@@ -141,17 +152,17 @@ class BookControllerTest {
     }
 
     @DisplayName("Get book by ID when book exists")
-    @WithMockUser(username = "user")
+    @WithMockUser(username = USER_ROLE)
     @Test
     void getById_ValidId_ReturnsBookDto() throws Exception {
         Long id = 4L;
         int expectedBookIndex = 3;
         List<BookDto> expected = getExpectedBooks();
 
-        MvcResult result = mockMvc.perform(get("/books/{id}", id)
-                        .contentType(MediaType.APPLICATION_JSON))
+        MvcResult result = mockMvc.perform(get(BOOK_ID_PATH, id)
+                        .contentType(MEDIA_TYPE_JSON))
                 .andExpect(status().isOk())
-                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(content().contentType(MEDIA_TYPE_JSON))
                 .andReturn();
         BookDto actual = objectMapper.readValue(result.getResponse().getContentAsString(),
                 BookDto.class);
@@ -162,14 +173,13 @@ class BookControllerTest {
     }
 
     @DisplayName("Get book by ID with invalid ID")
-    @WithMockUser(username = "user")
+    @WithMockUser(username = USER_ROLE)
     @Test
     void getById_InvalidId_ThrowsEntityNotFoundException() throws Exception {
-        Long invalidId = 24L;
-        String expected = "Can't find book with id " + invalidId;
+        String expected = CANNOT_FIND_BOOK + INVALID_ID;
 
-        MvcResult result = mockMvc.perform(get("/books/{id}", invalidId)
-                        .contentType(MediaType.APPLICATION_JSON))
+        MvcResult result = mockMvc.perform(get(BOOK_ID_PATH, INVALID_ID)
+                        .contentType(MEDIA_TYPE_JSON))
                 .andReturn();
         String actual = result.getResolvedException().getMessage();
 
@@ -177,15 +187,15 @@ class BookControllerTest {
     }
 
     @DisplayName("Search books with valid parameters and default pageable")
-    @WithMockUser(username = "user")
+    @WithMockUser(username = USER_ROLE)
     @Test
     void searchBooks_ValidParametersDefaultPageable_ReturnsPageOfBooks() throws Exception {
         List<BookDto> bookDtos = getExpectedBooks();
         List<BookDto> expected = List.of(bookDtos.get(0), bookDtos.get(1), bookDtos.get(2));
 
-        MvcResult result = mockMvc.perform(get("/books/search")
-                        .param("authors", "Author 1, Author 2, Author 3")
-                        .contentType(MediaType.APPLICATION_JSON))
+        MvcResult result = mockMvc.perform(get(BOOKS_SEARCH_PATH)
+                        .param(PARAM_AUTHORS, "Author 1, Author 2, Author 3")
+                        .contentType(MEDIA_TYPE_JSON))
                 .andReturn();
         List<BookDto> actual = objectMapper.readValue(result.getResponse().getContentAsString(),
                 objectMapper.getTypeFactory().constructCollectionType(List.class, BookDto.class));
@@ -196,7 +206,7 @@ class BookControllerTest {
     }
 
     @DisplayName("Search books with valid parameters and custom pageable")
-    @WithMockUser(username = "user")
+    @WithMockUser(username = USER_ROLE)
     @Test
     void searchBooks_ValidParametersCustomPageable_ReturnsCustomPageOfBooks() throws Exception {
         List<BookDto> bookDtos = getExpectedBooks();
@@ -206,13 +216,13 @@ class BookControllerTest {
                 .limit(3)
                 .toList();
 
-        MvcResult result = mockMvc.perform(get("/books/search")
-                        .param("page", "1")
-                        .param("size", "3")
-                        .param("authors", "Author 1, Author 2, Author 3, Author 4, Author 5")
-                        .contentType(MediaType.APPLICATION_JSON))
+        MvcResult result = mockMvc.perform(get(BOOKS_SEARCH_PATH)
+                        .param(PARAM_PAGE, "1")
+                        .param(PARAM_SIZE, "3")
+                        .param(PARAM_AUTHORS, "Author 1, Author 2, Author 3, Author 4, Author 5")
+                        .contentType(MEDIA_TYPE_JSON))
                 .andExpect(status().isOk())
-                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(content().contentType(MEDIA_TYPE_JSON))
                 .andReturn();
 
         List<BookDto> actual = objectMapper.readValue(result.getResponse().getContentAsString(),
@@ -224,17 +234,17 @@ class BookControllerTest {
     }
 
     @DisplayName("Create new book with valid request")
-    @WithMockUser(username = "admin", roles = {"ADMIN"})
+    @WithMockUser(username = ADMIN_ROLE, roles = {ROLE_ADMIN})
     @Test
     void create_ValidRequestDto_ReturnsBookResponseDto() throws Exception {
         CreateBookRequestDto newBook = getRequestDto();
         String jsonRequest = objectMapper.writeValueAsString(newBook);
         BookDto expected = toBookDto(newBook);
 
-        MvcResult result = mockMvc.perform(post("/books")
+        MvcResult result = mockMvc.perform(post(BOOKS_PATH)
                         .content(jsonRequest)
-                        .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                        .contentType(MEDIA_TYPE_JSON))
+                .andExpect(content().contentType(MEDIA_TYPE_JSON))
                 .andReturn();
         BookDto actual = objectMapper.readValue(result.getResponse().getContentAsString(),
                 BookDto.class);
@@ -244,25 +254,25 @@ class BookControllerTest {
     }
 
     @DisplayName("Create new book with invalid request")
-    @WithMockUser(username = "admin", roles = {"ADMIN"})
+    @WithMockUser(username = ADMIN_ROLE, roles = {ROLE_ADMIN})
     @Test
     void create_InvalidRequestDto_ThrowsValidationException() throws Exception {
         CreateBookRequestDto newBook = new CreateBookRequestDto();
         newBook.setTitle("New Book");
         String jsonRequest = objectMapper.writeValueAsString(newBook);
 
-        MvcResult result = mockMvc.perform(post("/books")
+        MvcResult result = mockMvc.perform(post(BOOKS_PATH)
                         .content(jsonRequest)
-                        .contentType(MediaType.APPLICATION_JSON))
+                        .contentType(MEDIA_TYPE_JSON))
                 .andExpect(status().isBadRequest())
                 .andReturn();
         String actual = result.getResolvedException().getMessage();
 
-        assertTrue(actual.contains("Validation failed"));
+        assertTrue(actual.contains(VALIDATION_FAILED));
     }
 
     @DisplayName("Update book by ID with valid ID and request")
-    @WithMockUser(username = "admin", roles = {"ADMIN"})
+    @WithMockUser(username = ADMIN_ROLE, roles = {ROLE_ADMIN})
     @Test
     void updateById_ValidIdAndValidRequestDto_ReturnsBookResponseDto() throws Exception {
         CreateBookRequestDto updatedBook = getRequestDto();
@@ -270,11 +280,11 @@ class BookControllerTest {
         String jsonRequest = objectMapper.writeValueAsString(updatedBook);
         BookDto expected = toBookDto(updatedBook);
 
-        MvcResult result = mockMvc.perform(put("/books/{id}", id)
+        MvcResult result = mockMvc.perform(put(BOOK_ID_PATH, id)
                         .content(jsonRequest)
-                        .contentType(MediaType.APPLICATION_JSON))
+                        .contentType(MEDIA_TYPE_JSON))
                 .andExpect(status().isOk())
-                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(content().contentType(MEDIA_TYPE_JSON))
                 .andReturn();
         BookDto actual = objectMapper.readValue(result.getResponse().getContentAsString(),
                 BookDto.class);
@@ -284,17 +294,16 @@ class BookControllerTest {
     }
 
     @DisplayName("Update book by ID with invalid ID")
-    @WithMockUser(username = "admin", roles = {"ADMIN"})
+    @WithMockUser(username = ADMIN_ROLE, roles = {ROLE_ADMIN})
     @Test
     void updateById_InvalidId_ThrowsValidationException() throws Exception {
         CreateBookRequestDto updatedBook = getRequestDto();
-        Long invalidId = 24L;
         String jsonRequest = objectMapper.writeValueAsString(updatedBook);
-        String expected = "Can't find book with id " + invalidId;
+        String expected = CANNOT_FIND_BOOK + INVALID_ID;
 
-        MvcResult result = mockMvc.perform(put("/books/{id}", invalidId)
+        MvcResult result = mockMvc.perform(put(BOOK_ID_PATH, INVALID_ID)
                         .content(jsonRequest)
-                        .contentType(MediaType.APPLICATION_JSON))
+                        .contentType(MEDIA_TYPE_JSON))
                 .andReturn();
         String actual = result.getResolvedException().getMessage();
 
@@ -302,17 +311,17 @@ class BookControllerTest {
     }
 
     @DisplayName("Delete book by ID with valid ID")
-    @WithMockUser(username = "admin", roles = {"ADMIN"})
+    @WithMockUser(username = ADMIN_ROLE, roles = {ROLE_ADMIN})
     @Test
     void deleteById_ValidId_Success() throws Exception {
         Long id = 4L;
-        String expected = "Can't find book with id " + id;
-        mockMvc.perform(delete("/books/{id}", id)
-                        .contentType(MediaType.APPLICATION_JSON))
+        String expected = CANNOT_FIND_BOOK + id;
+        mockMvc.perform(delete(BOOK_ID_PATH, id)
+                        .contentType(MEDIA_TYPE_JSON))
                 .andReturn();
 
-        MvcResult result = mockMvc.perform(get("/books/{id}", id)
-                        .contentType(MediaType.APPLICATION_JSON))
+        MvcResult result = mockMvc.perform(get(BOOK_ID_PATH, id)
+                        .contentType(MEDIA_TYPE_JSON))
                 .andExpect(status().isNotFound())
                 .andReturn();
         String actual = result.getResolvedException().getMessage();
@@ -321,19 +330,17 @@ class BookControllerTest {
     }
 
     @DisplayName("Delete book by ID with invalid ID")
-    @WithMockUser(username = "admin", roles = {"ADMIN"})
+    @WithMockUser(username = ADMIN_ROLE, roles = {ROLE_ADMIN})
     @Test
     void deleteById_InvalidId_ThrowsEntityNotFoundException() throws Exception {
-        Long invalidId = 24L;
-        String expected = "Can't find book with id " + invalidId;
+        String expected = CANNOT_FIND_BOOK + INVALID_ID;
 
-        MvcResult result = mockMvc.perform(delete("/books/{id}", invalidId)
-                        .contentType(MediaType.APPLICATION_JSON))
+        MvcResult result = mockMvc.perform(delete(BOOK_ID_PATH, INVALID_ID)
+                        .contentType(MEDIA_TYPE_JSON))
                 .andReturn();
         String actual = result.getResolvedException().getMessage();
 
         assertEquals(expected, actual);
-
     }
 
     private List<BookDto> getExpectedBooks() {
@@ -346,7 +353,7 @@ class BookControllerTest {
                             .setScale(2, RoundingMode.HALF_UP));
                     bookDto.setDescription(BOOK_DESCRIPTION + i);
                     bookDto.setCoverImage(BOOK_IMAGE + i + ".jpg");
-                    bookDto.setCategoryIds(Set.of(1L));
+                    bookDto.setCategoryIds(Set.of(CATEGORY_ID));
                     return bookDto;
                 })
                 .collect(Collectors.toList());
@@ -370,7 +377,7 @@ class BookControllerTest {
         updatedBook.setPrice(BigDecimal.valueOf(15.99));
         updatedBook.setDescription("New Description");
         updatedBook.setCoverImage("newCoverImage.jpg");
-        updatedBook.setCategories(Set.of(1L));
+        updatedBook.setCategories(Set.of(CATEGORY_ID));
         updatedBook.setIsbn("67890-236589");
         return updatedBook;
     }
