@@ -1,6 +1,5 @@
 package mate.academy.bookshop.repository.book;
 
-import java.util.List;
 import java.util.Optional;
 import mate.academy.bookshop.model.Book;
 import org.springframework.data.domain.Page;
@@ -27,5 +26,5 @@ public interface BookRepository extends JpaRepository<Book, Long>, JpaSpecificat
             + "LEFT JOIN books_categories ON books.id = books_categories.book_id "
             + "WHERE books_categories.category_id = :id",
             nativeQuery = true)
-    List<Book> findByCategoryId(Long id, Pageable pageable);
+    Page<Book> findByCategoryId(Long id, Pageable pageable);
 }
