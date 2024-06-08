@@ -87,7 +87,7 @@ Follow this steps to run Infinite Pages:
 
 6. **Access the Application**:
 
-   Open your browser and go to http://localhost:8080/api/swagger-ui.html to access the Swagger API documentation.
+   Open your browser and go to http://ec2-54-210-159-44.compute-1.amazonaws.com/swagger-ui/index.html#/ to access the Swagger API documentation.
 
 ## 📨 Postman Collection
 [![Run In Postman](https://run.pstmn.io/button.svg)](https://god.gw.postman.com/run-collection/27654110-e9da90b5-a162-403e-aa61-86128ee91941?action=collection%2Ffork&source=rip_markdown&collection-url=entityId%3D27654110-e9da90b5-a162-403e-aa61-86128ee91941%26entityType%3Dcollection%26workspaceId%3D0c7c53b2-2c1b-4b07-8cf8-3513ebbf748b)

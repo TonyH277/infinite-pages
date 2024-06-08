@@ -1,7 +1,6 @@
 package mate.academy.bookshop.service.impl;
 
 import jakarta.transaction.Transactional;
-import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import mate.academy.bookshop.dto.shoppingcart.CartItemRequestDto;
 import mate.academy.bookshop.dto.shoppingcart.CartResponseDto;
@@ -80,10 +79,8 @@ public class ShoppingCartServiceImpl implements ShoppingCartService {
     }
 
     private void addBookToCartItem(CartItem cartItem) {
-        Optional<Book> bookOptional = bookRepository.findById(cartItem.getBook().getId());
-        if (bookOptional.isEmpty()) {
-            throw new EntityNotFoundException("No book with id " + cartItem.getBook().getId());
-        }
-        cartItem.setBook(bookOptional.get());
+        Book book = bookRepository.findById(cartItem.getBook().getId()).orElseThrow(()
+                -> new EntityNotFoundException("No book with id " + cartItem.getBook().getId()));
+        cartItem.setBook(book);
     }
 }
