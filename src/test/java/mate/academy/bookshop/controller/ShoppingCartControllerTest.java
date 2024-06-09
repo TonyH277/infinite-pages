@@ -23,9 +23,6 @@ import mate.academy.bookshop.dto.shoppingcart.CartItemRequestDto;
 import mate.academy.bookshop.dto.shoppingcart.CartResponseDto;
 import mate.academy.bookshop.dto.shoppingcart.UpdateCartItemRequestDto;
 import mate.academy.bookshop.model.User;
-import mate.academy.bookshop.repository.CartItemRepository;
-import mate.academy.bookshop.repository.RoleRepository;
-import mate.academy.bookshop.repository.ShoppingCartRepository;
 import mate.academy.bookshop.repository.UserRepository;
 import mate.academy.bookshop.service.ShoppingCartService;
 import org.junit.jupiter.api.AfterAll;
@@ -83,14 +80,6 @@ class ShoppingCartControllerTest {
     @Autowired
     private UserRepository userRepository;
 
-    @Autowired
-    private RoleRepository roleRepository;
-
-    @Autowired
-    private ShoppingCartRepository shoppingCartRepository;
-
-    @Autowired
-    private CartItemRepository cartItemRepository;
     private User user;
 
     @BeforeAll

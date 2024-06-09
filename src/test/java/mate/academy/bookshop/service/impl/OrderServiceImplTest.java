@@ -12,7 +12,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-
 import mate.academy.bookshop.dto.order.OrderItemResponseDto;
 import mate.academy.bookshop.dto.order.OrderRequestDto;
 import mate.academy.bookshop.dto.order.OrderResponseDto;
@@ -33,7 +32,6 @@ import mate.academy.bookshop.repository.CartItemRepository;
 import mate.academy.bookshop.repository.OrderItemRepository;
 import mate.academy.bookshop.repository.OrderRepository;
 import mate.academy.bookshop.repository.ShoppingCartRepository;
-
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -80,7 +78,7 @@ class OrderServiceImplTest {
     private OrderItemResponseDto itemResponseDto;
 
     @InjectMocks
-    OrderServiceImpl orderService;
+    private OrderServiceImpl orderService;
 
     @BeforeEach
     public void setUp() {
@@ -226,11 +224,11 @@ class OrderServiceImplTest {
                 LocalDateTime.now(),
                 PRICE,
                 STATUS_DELIVERED);
-        List<OrderResponseDto> expected = List.of(orderResponseDto);
         when(orderRepository.findAllByUserId(user.getId(), pageable))
                 .thenReturn(List.of(order));
         when(orderMapper.toDto(any(Order.class)))
                 .thenReturn(orderResponseDto);
+        List<OrderResponseDto> expected = List.of(orderResponseDto);
 
         List<OrderResponseDto> actual = orderService.getOrders(user.getId(), pageable);
 
@@ -248,13 +246,13 @@ class OrderServiceImplTest {
         Pageable pageable = PageRequest.of(PAGE, SIZE);
         Page<OrderItem> orderItemPage = new PageImpl<>(List.of(orderItem));
         OrderItemResponseDto itemResponseDto = toDto(orderItem);
-        List<OrderItemResponseDto> expected = List.of(itemResponseDto);
         when(orderRepository.existsById(any(Long.class)))
                 .thenReturn(true);
         when(orderItemRepository.findByOrderId(order.getId(), pageable))
                 .thenReturn(orderItemPage);
         when(orderItemMapper.toDto(any(OrderItem.class)))
                 .thenReturn(itemResponseDto);
+        List<OrderItemResponseDto> expected = List.of(itemResponseDto);
 
         List<OrderItemResponseDto> actual = orderService.getItems(order.getId(), pageable);
 
@@ -291,7 +289,8 @@ class OrderServiceImplTest {
         when(orderItemMapper.toDto(any(OrderItem.class)))
                 .thenReturn(expected);
 
-        OrderItemResponseDto actual = orderService.getItemByOrderId(order.getId(), orderItem.getId());
+        OrderItemResponseDto actual = orderService.getItemByOrderId(order.getId(),
+                orderItem.getId());
 
         assertEquals(expected, actual);
     }
