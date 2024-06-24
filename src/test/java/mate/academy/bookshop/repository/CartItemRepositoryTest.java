@@ -3,18 +3,8 @@ package mate.academy.bookshop.repository;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.math.BigDecimal;
-import java.util.HashSet;
 import java.util.Optional;
-import java.util.Set;
-import mate.academy.bookshop.model.Book;
 import mate.academy.bookshop.model.CartItem;
-import mate.academy.bookshop.model.Role;
-import mate.academy.bookshop.model.RoleName;
-import mate.academy.bookshop.model.ShoppingCart;
-import mate.academy.bookshop.model.User;
-import mate.academy.bookshop.repository.book.BookRepository;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

@@ -2,11 +2,7 @@ package mate.academy.bookshop.repository;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import java.math.BigDecimal;
-import mate.academy.bookshop.model.Book;
-import mate.academy.bookshop.model.order.Order;
 import mate.academy.bookshop.model.order.OrderItem;
-import mate.academy.bookshop.repository.book.BookRepository;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

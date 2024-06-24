@@ -7,7 +7,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.util.Optional;
 import mate.academy.bookshop.model.CartItem;
 import mate.academy.bookshop.model.ShoppingCart;
-import mate.academy.bookshop.model.User;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;

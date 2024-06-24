@@ -3,12 +3,9 @@ package mate.academy.bookshop.repository;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
-import mate.academy.bookshop.model.Book;
 import mate.academy.bookshop.model.order.Order;
-import mate.academy.bookshop.model.order.OrderItem;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
