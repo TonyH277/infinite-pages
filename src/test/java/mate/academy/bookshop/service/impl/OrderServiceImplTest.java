@@ -59,6 +59,11 @@ class OrderServiceImplTest {
     private static final int PAGE = 0;
     private static final int SIZE = 20;
 
+    private ShoppingCart shoppingCart;
+    private User user;
+    private CartItem cartItem;
+    private OrderItemResponseDto itemResponseDto;
+
     @Mock
     private ShoppingCartRepository shoppingCartRepository;
     @Mock
@@ -71,11 +76,6 @@ class OrderServiceImplTest {
     private OrderMapper orderMapper;
     @Mock
     private OrderItemMapper orderItemMapper;
-
-    private ShoppingCart shoppingCart;
-    private User user;
-    private CartItem cartItem;
-    private OrderItemResponseDto itemResponseDto;
 
     @InjectMocks
     private OrderServiceImpl orderService;
@@ -256,7 +256,6 @@ class OrderServiceImplTest {
 
         List<OrderItemResponseDto> actual = orderService.getItems(order.getId(), pageable);
 
-        assertNotNull(actual);
         assertEquals(expected, actual);
     }
 
