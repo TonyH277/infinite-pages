@@ -36,4 +36,3 @@ WHERE isbn IN (
                'ISBN-00011', 'ISBN-00012', 'ISBN-00013', 'ISBN-00014', 'ISBN-00015',
                'ISBN-00016', 'ISBN-00017', 'ISBN-00018', 'ISBN-00019', 'ISBN-00020'
     );
-

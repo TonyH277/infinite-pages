@@ -30,6 +30,11 @@ Infinite Pages aims to simplify the process of managing an online bookstore. By 
 - **Mockito**: Helps to isolate the code under test by mocking its dependencies, making it easier to write effective unit tests.
 - **Testcontainers**: Provides lightweight, throwaway instances of Docker containers for integration testing.
 
+## ☁️ Deployed on AWS
+
+To explore the API documentation and test the endpoints, you can visit the Swagger UI deployed on AWS:
+
+- [Swagger API Documentation](http://ec2-54-210-159-44.compute-1.amazonaws.com/swagger-ui/index.html#/)
 
 ## ✨ Features
 
